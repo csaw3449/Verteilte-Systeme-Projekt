@@ -42,7 +42,9 @@ def main(randomGenerator):
                     send_frame(frame)
                     # waits for 5 seconds to simulate the delay
                     time.sleep(secounds_between_images)
-            print("Video ended")
+                # just for testing purposes TODO remove this block after testing
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
             cap.release()
             cv2.destroyAllWindows()
         
