@@ -1,0 +1,7 @@
+Detector: HOG_SVM 
+Video file: video8_5.avi 
+Processing time (m): 0.88 
+Average FPS: 18.98 
+Number of frames: 1000 
+Number of frames with detections: 155 
+Number of detections: 160 

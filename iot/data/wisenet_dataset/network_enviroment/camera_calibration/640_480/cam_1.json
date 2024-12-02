@@ -1,0 +1,32 @@
+{
+    "regionsOfInterest": [
+        {
+            "regionOfInterest": "RegionOfInterest_1",
+            "xywh": [
+                404, 
+                11, 
+                118, 
+                406
+            ],
+            "represents": "IfcDoor_588559"
+        }, 
+        {
+            "regionOfInterest": "RegionOfInterest_2",
+            "xywh": [
+                127, 
+                3, 
+                207, 
+                257
+            ],
+            "represents": "IfcDoor_589362"
+        }
+    ], 
+    "deviceID": "SmartCamera_1", 
+    "isHostedBy": "IfcSpace_102572",
+    "resolution": [
+        {
+            "height": 480.0, 
+            "width": 640.0
+        }
+    ]
+}

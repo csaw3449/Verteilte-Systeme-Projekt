@@ -1,0 +1,19 @@
+This file contains the ID used in the IFC fille of each space and door of interest.
+
+--------------------------------------------
+IFC_ID ; Abbreviation in topology.eps image 
+--------------------------------------------
+IfcSpace_102572 ; s1
+IfcSpace_23922 ; s2
+IfcSpace_24737 ; s3
+IfcSpace_23294 ; s4
+IfcSpace_23494 ; s5
+IfcSpace_25466 ; s6
+
+IfcDoor_589362 ; d1
+IfcDoor_588559 ; d2
+IfcDoor_588624 ; d3
+IfcDoor_588754 ; d4
+IfcDoor_589135 ; d5
+IfcDoor_589198 ; d6
+IfcDoor_588175 ; d7
