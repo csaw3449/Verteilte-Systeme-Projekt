@@ -1,35 +1,52 @@
+version: '3.8'
+
 services:
   iot_device_1:
     build: .
+    container_name: iot_device_1
     environment:
-      - SEED=1
+      - SET_NUMBER=1
+    #volumes:
+    #  - ./data/set1:/app/data/wisenet_dataset/video_sets/set_1
     ports:
       - "5001:5000"
 
   iot_device_2:
     build: .
+    container_name: iot_device_2
     environment:
-      - SEED=2
+      - SET_NUMBER=2
+    #volumes:
+    #  - ./data/set2:/app/data/wisenet_dataset/video_sets/set_2
     ports:
       - "5002:5000"
 
   iot_device_3:
     build: .
+    container_name: iot_device_3
     environment:
-      - SEED=3
+      - SET_NUMBER=3
+    #volumes:
+    #  - ./data/set3:/app/data/wisenet_dataset/video_sets/set_3
     ports:
       - "5003:5000"
 
   iot_device_4:
     build: .
+    container_name: iot_device_4
     environment:
-      - SEED=4
+      - SET_NUMBER=4
+    #volumes:
+    #  - ./data/set4:/app/data/wisenet_dataset/video_sets/set_4
     ports:
       - "5004:5000"
 
   iot_device_5:
     build: .
+    container_name: iot_device_5
     environment:
-      - SEED=5
+      - SET_NUMBER=5
+    #volumes:
+    #  - ./data/set5:/app/data/wisenet_dataset/video_sets/set_5
     ports:
       - "5005:5000"
