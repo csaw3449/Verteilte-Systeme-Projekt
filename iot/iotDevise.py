@@ -12,21 +12,20 @@ def send_frame(frame):
     # TODO: send the frame to the edge layer to be processed
     pass
 
-# @app.route('/trigger_alarm', methods=['POST'])
+# @app.route('/alarm', methods=['POST'])
 def waiting_for_alarm():
     # TODO: implement logic that waits for an alarm from the AWS and prints something
     pass
 
-def main(randomGenerator):
+def main():
+    set_number = os.environ.get('SET_NUMBER', 1)
     path_to_video = "data//wisenet_dataset/video_sets/set_"
     while True: 
-        # We have 11 different video sets and it chooses one of them randomly
-        randomSet = randomGenerator.randint(1, 11) 
         # selects all videos from the chosen set
-        videos = os.listdir(path_to_video + str(randomSet))
+        videos = os.listdir(path_to_video + str(set_number))
         # selects all videos from the chosen set 
         for video in videos:
-            cap = cv2.VideoCapture(path_to_video + str(randomSet) + "//" + video)
+            cap = cv2.VideoCapture(path_to_video + str(set_number) + "//" + video)
             counter = 0
             while(cap.isOpened()):
                 ret, frame = cap.read()
@@ -49,10 +48,4 @@ def main(randomGenerator):
             cv2.destroyAllWindows()
         
 if __name__ == "__main__":
-    # get the environment variable for the seed
-    seed = os.environ.get('SEED', 111)
-
-    randomGenerator = random.Random()
-    randomGenerator.seed(seed)
-
-    main(randomGenerator)
+    main()

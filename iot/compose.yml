@@ -1,0 +1,35 @@
+services:
+  iot_device_1:
+    build: .
+    environment:
+      - SEED=1
+    ports:
+      - "5001:5000"
+
+  iot_device_2:
+    build: .
+    environment:
+      - SEED=2
+    ports:
+      - "5002:5000"
+
+  iot_device_3:
+    build: .
+    environment:
+      - SEED=3
+    ports:
+      - "5003:5000"
+
+  iot_device_4:
+    build: .
+    environment:
+      - SEED=4
+    ports:
+      - "5004:5000"
+
+  iot_device_5:
+    build: .
+    environment:
+      - SEED=5
+    ports:
+      - "5005:5000"
