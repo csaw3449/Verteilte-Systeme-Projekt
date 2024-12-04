@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   iot_device_1:
-    build: .
     container_name: iot_device_1
+    image: iot_device
     environment:
       - SET_NUMBER=1
     #volumes:
@@ -12,8 +12,8 @@ services:
       - "5001:5000"
 
   iot_device_2:
-    build: .
     container_name: iot_device_2
+    image: iot_device
     environment:
       - SET_NUMBER=2
     #volumes:
@@ -22,8 +22,8 @@ services:
       - "5002:5000"
 
   iot_device_3:
-    build: .
     container_name: iot_device_3
+    image: iot_device
     environment:
       - SET_NUMBER=3
     #volumes:
@@ -32,8 +32,8 @@ services:
       - "5003:5000"
 
   iot_device_4:
-    build: .
     container_name: iot_device_4
+    image: iot_device
     environment:
       - SET_NUMBER=4
     #volumes:
@@ -42,8 +42,10 @@ services:
       - "5004:5000"
 
   iot_device_5:
-    build: .
     container_name: iot_device_5
+    build: 
+      context: .
+      dockerfile: Dockerfile
     environment:
       - SET_NUMBER=5
     #volumes:

@@ -5,7 +5,8 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY iotDevise.py /app
+COPY /data/wisenet_dataset/video_sets /app/data/wisenet_dataset/videosets
 
 # Install dependencies for openCV
 RUN apt-get update && apt-get install -y \
