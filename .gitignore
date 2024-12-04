@@ -1,2 +1,7 @@
 # Folder 
 /terraform/.terraform
+
+
+# Files
+iot.tar
+EC2-key.pem
