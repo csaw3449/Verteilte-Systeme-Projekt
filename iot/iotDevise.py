@@ -4,9 +4,9 @@ import cv2
 import time 
 import threading
 
-frame_rate = 24 # TODO: find out the frame rate of the videos
-secounds_between_images = 5
-delay_images = frame_rate * secounds_between_images # 5 seconds delay between each image
+frame_rate = 30 # Framerate of the videos
+seconds_between_images = 3 # 3 seconds between each image 
+delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 def send_frame(frame):
     # TODO: send the frame to the edge layer to be processed
@@ -40,7 +40,7 @@ def main():
                     # send the frame
                     send_frame(frame)
                     # waits for 5 seconds to simulate the delay
-                    time.sleep(secounds_between_images)
+                    time.sleep(seconds_between_images)
                 # just for testing purposes TODO remove this block after testing
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
