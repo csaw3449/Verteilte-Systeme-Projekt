@@ -47,7 +47,7 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids = [aws_security_group.security.id]
 
     provisioner "file" {
-    source      = "${path.module}/GameFiles/"
+    source      = "${path.module}/file_upload/"
     destination = "/home/ec2-user/"
 
     connection {
@@ -60,6 +60,6 @@ resource "aws_instance" "app_server" {
 
 
   tags = {
-    Name = "MyEC2Instance"
+    Name = "iot-Devices"
   }
 }

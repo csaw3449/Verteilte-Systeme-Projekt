@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  iot_device_1:
+    container_name: iot_device_1
+    image: iot
+    environment:
+      - SET_NUMBER=1
+    #volumes:
+    #  - ./data/set1:/app/data/wisenet_dataset/video_sets/set_1
+    ports:
+      - "5001:5000"
+
+  iot_device_2:
+    container_name: iot_device_2
+    image: iot
+    environment:
+      - SET_NUMBER=2
+    #volumes:
+    #  - ./data/set2:/app/data/wisenet_dataset/video_sets/set_2
+    ports:
+      - "5002:5000"
+
+  iot_device_3:
+    container_name: iot_device_3
+    image: iot
+    environment:
+      - SET_NUMBER=3
+    #volumes:
+    #  - ./data/set3:/app/data/wisenet_dataset/video_sets/set_3
+    ports:
+      - "5003:5000"
+
+  iot_device_4:
+    container_name: iot_device_4
+    image: iot
+    environment:
+      - SET_NUMBER=4
+    #volumes:
+    #  - ./data/set4:/app/data/wisenet_dataset/video_sets/set_4
+    ports:
+      - "5004:5000"
+
+  iot_device_5:
+    container_name: iot_device_5
+    image: iot
+    environment:
+      - SET_NUMBER=5
+    #volumes:
+    #  - ./data/set5:/app/data/wisenet_dataset/video_sets/set_5
+    ports:
+      - "5005:5000"
