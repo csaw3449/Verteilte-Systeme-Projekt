@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0
 
 # Install OpenCV
-RUN pip install opencv-python
+RUN pip install opencv-python boto3
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
