@@ -1,0 +1,7 @@
+Detector: SSD_512 
+Video file: video1_4.avi 
+Processing time (m): 25.65 
+Average FPS: 1.13 
+Number of frames: 1746 
+Number of frames with detections: 1746 
+Number of detections: 2521 

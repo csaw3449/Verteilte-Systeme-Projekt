@@ -1,0 +1,42 @@
+{
+    "regionsOfInterest": [
+        {
+            "regionOfInterest": "RegionOfInterest_8",
+            "xywh": [
+                552,
+                119,
+                98,
+                239
+            ],
+            "represents": "IfcDoor_588559"
+        },
+        {
+            "regionOfInterest": "RegionOfInterest_9",
+            "xywh": [
+                1048,
+                85,
+                125, 
+                193
+            ],
+            "represents": "IfcDoor_589198"
+        },
+	    {
+            "regionOfInterest": "RegionOfInterest_10",
+            "xywh": [
+                805,
+                83,
+                79,
+                146
+            ],
+            "represents": "IfcDoor_589135"
+        }
+    ],
+    "deviceID": "SmartCamera_4",
+    "isHostedBy": "IfcSpace_23922",
+    "resolution": [
+        {
+            "height": 720.0,
+            "width": 1280.0
+        }
+    ]
+}

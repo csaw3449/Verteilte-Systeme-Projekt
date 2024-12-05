@@ -1,0 +1,7 @@
+Detector: HOG_SVM 
+Video file: video4_3.avi 
+Processing time (m): 4.54 
+Average FPS: 26.27 
+Number of frames: 7152 
+Number of frames with detections: 1025 
+Number of detections: 1027 

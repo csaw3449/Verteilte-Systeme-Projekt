@@ -1,0 +1,7 @@
+Detector: YOLOv3_608 
+Video file: video2_2.avi 
+Processing time (m): 42.61 
+Average FPS: 1.39 
+Number of frames: 3554 
+Number of frames with detections: 1325 
+Number of detections: 1325 
