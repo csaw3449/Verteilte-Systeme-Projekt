@@ -5,7 +5,8 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY iotDevise.py /app
+COPY /data/wisenet_dataset/video_sets /app/data/wisenet_dataset/video_sets
 
 # Install dependencies for openCV
 RUN apt-get update && apt-get install -y \
@@ -13,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0
 
 # Install OpenCV
-RUN pip install opencv-python
+RUN pip install opencv-python boto3
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000

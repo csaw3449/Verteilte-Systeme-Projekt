@@ -1,0 +1,10 @@
+# Folder 
+/terraform/.terraform
+/iot/data/wisenet_dataset/automatic_annotaitons
+/iot/data//wisenet_datasetmanual_annotations
+/iot/data/wisenet_dataset/network_environment
+/iot/data/wisenet_dataset/scripts
+
+# Files
+iot.tar
+EC2-key.pem

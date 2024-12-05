@@ -14,6 +14,9 @@ This program requires environment variables to be set:
 - IOT_ID: the ID of the IoT device
 - SET_NUMBER: the number of the video set to be used
 """
+frame_rate = 30 # Framerate of the videos
+seconds_between_images = 3 # 3 seconds between each image 
+delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 # Configuration
 frame_rate = 24
