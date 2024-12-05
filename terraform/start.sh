@@ -15,6 +15,7 @@ ssh -i "EC2-key.pem" ec2-user@$host sudo docker-compose up -d
 
 # Connect to ssh
 ssh -i "EC2-key.pem" ec2-user@$host 
+echo $host
 
 # Auto destroy EC2 on command 'exit'
 terraform destroy -auto-approve

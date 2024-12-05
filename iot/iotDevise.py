@@ -35,7 +35,9 @@ def main():
                 # we only need to send the frame every 5 seconds
                 if (counter > delay_images):
                     # Display the resulting frame TODO remove this line after testing
-                    cv2.imshow('frame',frame)
+                    # imshow in docker container not possible, instead print logs to see if file arrives with success
+                    
+                    # cv2.imshow('frame',frame)
                     counter = 0
                     # send the frame
                     send_frame(frame)
