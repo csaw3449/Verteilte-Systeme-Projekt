@@ -1,83 +1,123 @@
 import random
 import os
 import cv2
-import time 
+import time
 import threading
 import boto3
 import json
+import botocore.exceptions
+
 """
-This programm sends images in from a video dataset to the edge layer in a specific time interval.
+This program sends images from a video dataset to the edge layer in a specific time interval.
 It also waits for an alarm from the edge layer and prints it.
-This programm need environment variables to be set:
-- IOT_ID: the id of the iot device
+This program requires environment variables to be set:
+- IOT_ID: the ID of the IoT device
 - SET_NUMBER: the number of the video set to be used
 """
-frame_rate = 24 # TODO: find out the frame rate of the videos, not really that important. Could also make random sampling
-secounds_between_images = 5
-delay_images = frame_rate * secounds_between_images # 5 seconds delay between each image
-#aws communicatioin
-sqs = boto3.resource('sqs', region_name='us-east-1')
-send_queue = sqs.get_queue_by_name(QueueName='images')  #TODO: names might change, check with edge layer
-receive_queue = sqs.get_queue_by_name(QueueName='alarm')
 
-id = os.environ.get('IOT_ID')
+# Configuration
+frame_rate = 24
+seconds_between_images = 5
+delay_images = frame_rate * seconds_between_images  # 5 seconds delay between each image
 
+# Environment Variables
+id = os.environ.get("IOT_ID", "default_id")  # Default ID if not set
+set_number = os.environ.get("SET_NUMBER", 1)
+
+# Initialize SQS Queues with Retry Logic
+MAX_RETRIES = 5
+
+#Function to get the queue, with MAX_RETRIES attemps
+def get_queue(queue_name, retries=0):
+    """Retry logic to fetch the SQS queue."""
+    sqs = boto3.resource("sqs", region_name="us-east-1")
+    while retries < MAX_RETRIES:
+        try:
+            print(f"Attempting to fetch queue: {queue_name}", flush=True)
+            return sqs.get_queue_by_name(QueueName=queue_name)
+        except botocore.exceptions.ClientError as e:
+            print(f"Failed to fetch queue {queue_name}: {e}", flush=True)
+            print(f"Retrying in 5 seconds... Attempt {retries + 1} of {MAX_RETRIES}", flush=True)
+            time.sleep(5)
+            retries += 1
+
+    print(f"Failed to fetch queue {queue_name} after {MAX_RETRIES} retries. Exiting.", flush=True)
+    return None  # Return None after reaching max retries
+
+send_queue = get_queue("images")
+receive_queue = get_queue("alarm")
+
+# Function to send frames
 def send_frame(frame):
-    # TODO: send the frame to the edge layer to be processed
-    message = {
-        "iot_id": id,
-        "frame": cv2.imencode('.jpg', frame)[1].tobytes()
-    }
-    send_queue.send_message(MessageBody=json.dumps(message))
-    print(f"Frame sent frame to queue: {message}")
+    try:
+        _, encoded_image = cv2.imencode(".jpg", frame)
+        message = {
+            "iot_id": id,
+            "frame": encoded_image.tobytes().decode("latin1"),  # Convert bytes to string
+        }
+        send_queue.send_message(MessageBody=json.dumps(message))
+        print(f"Frame sent to queue: {message}", flush=True)
+    except Exception as e:
+        print(f"Error sending frame: {e}", flush=True)
+        print("Retrying to send frame in 5 seconds...", flush=True)
+        time.sleep(5)
+        send_frame(frame)  # Retry sending the frame after 5 seconds
 
-# @app.route('/alarm', methods=['POST'])
+# Function to wait for alarms
 def waiting_for_alarm():
-    # TODO: implement logic that waits for an alarm from the AWS and prints something
     while True:
-        response = receive_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10)
-        for message in response:
-            body = json.loads(message.body)
-            if body.get("iot_id") == id:
-                print(f"Alarm received: {message.body}")
-                message.delete()
+        try:
+            response = receive_queue.receive_messages(
+                MaxNumberOfMessages=1, WaitTimeSeconds=10
+            )
+            for message in response:
+                body = json.loads(message.body)
+                if body.get("iot_id") == id:
+                    print(f"Alarm received: {message.body}", flush=True)
+                    message.delete()
+                else:
+                    print(f"Ignoring alarm for {body['iot_id']}", flush=True)
+        except botocore.exceptions.ClientError as e:
+            print(f"Error receiving alarm: {e}", flush=True)
+            print("Retrying alarm listener in 5 seconds...", flush=True)
+            time.sleep(5)
 
+# Function to send images
 def send_images():
-    set_number = os.environ.get('SET_NUMBER', 1)
-    path_to_video = "data//wisenet_dataset/video_sets/set_"
-    while True: 
-        # selects all videos from the chosen set
-        videos = os.listdir(path_to_video + str(set_number))
-        # selects all videos from the chosen set 
-        for video in videos:
-            cap = cv2.VideoCapture(path_to_video + str(set_number) + "//" + video)
-            counter = 0
-            while(cap.isOpened()):
-                ret, frame = cap.read()
-                if not ret: 
-                    break
-                counter += 1
-                # we only need to send the frame every 5 seconds
-                if (counter > delay_images):
-                    # Display the resulting frame TODO remove this line after testing
-                    cv2.imshow('frame',frame)
-                    counter = 0
-                    # send the frame
-                    send_frame(frame)
-                    # waits for 5 seconds to simulate the delay
-                    time.sleep(secounds_between_images)
-                # just for testing purposes TODO remove this block after testing
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-            cap.release()
-            cv2.destroyAllWindows()
+    path_to_video = f"data/wisenet_dataset/video_sets/set_{set_number}/"
+    while True:
+        try:
+            videos = os.listdir(path_to_video)
+            for video in videos:
+                cap = cv2.VideoCapture(path_to_video + video)
+                counter = 0
+                while cap.isOpened():
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    counter += 1
+                    if counter > delay_images:
+                        print("Sending frame...", flush=True)
+                        send_frame(frame)
+                        counter = 0
+                        time.sleep(seconds_between_images)
+                cap.release()
+                cv2.destroyAllWindows()
+        except botocore.exceptions.ClientError as e:
+            print(f"Error sending images: {e}", flush=True)
+            print("Retrying image sending in 5 seconds...", flush=True)
+            time.sleep(5)
 
+# Main Function
 def main():
-    threadSend = threading.Thread(target=send_images)
-    threadReceive = threading.Thread(target=waiting_for_alarm)
-    
-    threadSend.start()
-    threadReceive.start()
-        
+    if send_queue is None or receive_queue is None:
+        print("Queues could not be retrieved.", flush=True)
+
+    thread_send = threading.Thread(target=send_images)
+    thread_receive = threading.Thread(target=waiting_for_alarm)
+
+    thread_send.start()
+    thread_receive.start()
+
 if __name__ == "__main__":
     main()
