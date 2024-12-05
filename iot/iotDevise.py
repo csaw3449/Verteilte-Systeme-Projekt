@@ -48,7 +48,7 @@ def get_queue(queue_name, retries=0):
     return None  # Return None after reaching max retries
 
 send_queue = get_queue("images")
-receive_queue = get_queue("alarm")
+#receive_queue = get_queue("alarm")
 
 # Function to send frames
 def send_frame(frame):
@@ -70,9 +70,9 @@ def send_frame(frame):
 def waiting_for_alarm():
     while True:
         try:
-            response = receive_queue.receive_messages(
-                MaxNumberOfMessages=1, WaitTimeSeconds=10
-            )
+            response = None #receive_queue.receive_messages(
+             #   MaxNumberOfMessages=1, WaitTimeSeconds=10
+            #)
             for message in response:
                 body = json.loads(message.body)
                 if body.get("iot_id") == id:
@@ -113,7 +113,7 @@ def send_images():
 
 # Main Function
 def main():
-    if send_queue is None or receive_queue is None:
+    if send_queue is None: #or receive_queue is None:
         print("Queues could not be retrieved.", flush=True)
 
     thread_send = threading.Thread(target=send_images)

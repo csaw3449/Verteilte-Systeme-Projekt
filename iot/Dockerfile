@@ -11,7 +11,12 @@ COPY /data/wisenet_dataset/video_sets /app/data/wisenet_dataset/video_sets
 # Install dependencies for openCV
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
-    libglib2.0-0
+    libglib2.0-0 \
+    libx11-6 \
+    libxext6 \
+    libsm6 \
+    libxrender1 \
+    && rm -rf /var/lib/apt/lists/* 
 
 # Install OpenCV
 RUN pip install opencv-python boto3

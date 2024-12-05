@@ -1,7 +1,6 @@
 #terraform apply -auto-approve
 #host=$(terraform show | grep public_dns | sed -n 's/.*"\([^"]*\)".*/\1/p')
 
-host=ec2-54-86-84-104.compute-1.amazonaws.com
 # Install Docker dependencies on EC2
 # ssh -o "StrictHostKeyChecking=accept-new" -i "EC2-key.pem" ec2-user@$host sudo yum install python3-pip -y
 ssh -i "EC2-key.pem" ec2-user@$host sudo yum install -y docker
@@ -19,6 +18,6 @@ ssh -i "EC2-key.pem" ec2-user@$host
 echo $host
 
 # Auto destroy EC2 on command 'exit'
-#terraform destroy -auto-approve
+terraform destroy -auto-approve
 
 
