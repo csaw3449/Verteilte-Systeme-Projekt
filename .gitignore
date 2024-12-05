@@ -1,9 +1,9 @@
 #Folder
-/terraform/.terraform
-/iot/data/wisenet_dataset/automatic_annotaitons
-/iot/data//wisenet_dataset/manual_annotations
-/iot/data/wisenet_dataset/network_environment
-/iot/data/wisenet_dataset/scripts
+/terraform/.terraform/
+/iot/data/wisenet_dataset/automatic_annotaitons/
+/iot/data//wisenet_dataset/manual_annotations/
+/iot/data/wisenet_dataset/network_environment/
+/iot/data/wisenet_dataset/scripts/
 
 #Files
 iot.tar
