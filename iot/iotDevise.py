@@ -14,14 +14,10 @@ This program requires environment variables to be set:
 - IOT_ID: the ID of the IoT device
 - SET_NUMBER: the number of the video set to be used
 """
+# Configuration
 frame_rate = 30 # Framerate of the videos
 seconds_between_images = 3 # 3 seconds between each image 
 delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
-
-# Configuration
-frame_rate = 24
-seconds_between_images = 5
-delay_images = frame_rate * seconds_between_images  # 5 seconds delay between each image
 
 # Environment Variables
 id = os.environ.get("IOT_ID", "default_id")  # Default ID if not set
