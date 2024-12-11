@@ -4,15 +4,19 @@ import cv2
 import json
 import numpy as np
 import asyncio
-#from ultralytics import YOLO
+import requests
+from ultralytics import YOLO
 
 # Load YOLO model for person detection
-#model_person = YOLO("yolov8n.pt")  # Person detection model (YOLOv8)
+model_person = YOLO("yolov8n.pt")  # Person detection model (YOLOv8)
+
 
 # Initialize SQS Queues
 sqs = boto3.resource("sqs", region_name="us-east-1")
-#load_balancer_queue = sqs.get_queue_by_name(QueueName="images")
-#forward_queue = sqs.get_queue_by_name(QueueName="to-cloud")
+
+#@
+#async def sendMessage(message):
+
 
 MAX_RETRIES = 5
 async def wait_for_queue(queue_name):
@@ -33,11 +37,11 @@ async def wait_for_queue(queue_name):
 
 async def detect_person(frame):
     """Detect persons using YOLO (Ultralytics)."""
-    #results = None#model_person(frame)  # Run YOLO model for person detection
-    #for result in results.pred[0]:  # Results from the first image (batch size 1)
-     #   if result[-1] == 0:  # Class 0 corresponds to 'person' in the coco dataset
-      #      # Return the bounding box for the detected person (x1, y1, x2, y2)
-       #     return result[:4].cpu().numpy()
+    results = model_person(frame)  # Run YOLO model for person detection
+    for result in results.pred[0]:  # Results from the first image (batch size 1)
+        if result[-1] == 0:  # Class 0 corresponds to 'person' in the coco dataset
+            # Return the bounding box for the detected person (x1, y1, x2, y2)
+            return result[:4].cpu().numpy()
     return None
 
 async def process_frame(frame, iot_id):
@@ -62,6 +66,7 @@ async def process_frame(frame, iot_id):
             }
 
             # Send the cropped person image to the cloud
+            sendMessageToCloud(message);
             #forward_queue.send_message(MessageBody=json.dumps(message))
             print(f"Person frame sent to cloud for IoT ID: {iot_id}.")
         else:
