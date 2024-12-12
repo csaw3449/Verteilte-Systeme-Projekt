@@ -38,7 +38,7 @@ resource "aws_security_group" "security" {
 }
 
 resource "aws_instance" "app_server" {
-  ami                  = "ami-06b21ccaeff8cd686"
+  ami                  = "ami-06b21ccaeff8cd685"
   instance_type        = "t2.micro"
   iam_instance_profile = "LabInstanceProfile"
 

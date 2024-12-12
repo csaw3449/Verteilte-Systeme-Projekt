@@ -1,5 +1,6 @@
 # Folder 
-/terraform/.terraform
+/terraform_iot/.terraform
+/terraform_edge/.terraform
 /iot/data/wisenet_dataset/automatic_annotaitons
 /iot/data//wisenet_datasetmanual_annotations
 /iot/data/wisenet_dataset/network_environment
@@ -7,4 +8,8 @@
 
 # Files
 iot.tar
+edge.tar
 EC2-key.pem
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
