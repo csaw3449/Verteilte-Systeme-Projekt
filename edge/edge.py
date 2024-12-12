@@ -3,6 +3,9 @@ import boto3
 import json
 import time
 import cv2
+import numpy as np
+import time
+
 from ultralytics import YOLO
 import botocore.exceptions
 
@@ -56,14 +59,21 @@ def process_yolo(frame, iot_id):
         results = model(frame)
         detections = results[0].boxes.data  # Adjust based on your YOLO implementation
 
-        # Check if a person is detected (class ID = 0 in COCO dataset)
-        person_detected = any(int(detection[-1]) == 0 for detection in detections)
+        for dection in detections:
+            x_min, y_min, x_max, y_max, confidence, class_id = dection
+            if class_id == 0: # 0 is the class for person
+                if confidence > 0.5:
+                    person_detected = True
 
-        if person_detected:
-            print(f"Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
-            threading.Thread(target=send_to_cloud, args=(frame, iot_id)).start()
-        else:
-            print(f"No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
+                    #cropping the whole frame to the person frame
+                    x_min, y_min, x_max, y_max = map(int, [x_min, y_min, x_max, y_max])
+                    cropped_frame = frame[y_min:y_max, x_min:x_max]
+
+                    if person_detected:
+                        print(f"Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
+                        threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
+                    else:
+                        print(f"No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
     except Exception as e:
         print(f"Error in YOLO processing: {e}", flush=True)
 
@@ -115,7 +125,7 @@ def listen_for_images():
             for message in messages:
                 body = json.loads(message.body)
                 frame_data = body["frame"].encode("latin1")  # Decode string to bytes
-                frame = cv2.imdecode(bytearray(frame_data), cv2.IMREAD_COLOR)
+                frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
                 iot_id = body["iot_id"]
 
                 print(f"Received image from IoT {iot_id}.", flush=True)
