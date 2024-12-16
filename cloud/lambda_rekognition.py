@@ -14,7 +14,6 @@ def lambda_handler(event, context):
         Bucket='pfusch-bucket',
         Image={
             'Bytes': image
-
         },
         FaceMatchThreshold=90
     )
@@ -27,7 +26,7 @@ def lambda_handler(event, context):
         }
     else:
         return {
-            'status': 'unknown'
+            'status': 'unknown',
             'iot_id': iot_id
         }
     
