@@ -2,6 +2,13 @@ import logging as logger
 from botocore.exceptions import ClientError
 import os
 import boto3
+# Create a logger
+logger = logger.getLogger(__name__)
+logger.setLevel(logger.INFO)
+handler = logger.StreamHandler()
+formatter = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 try: 
     prof_name =os.getenv('PROFILE_NAME')
@@ -59,7 +66,6 @@ def create_bucket(bucket_name):
         return True
 
 if __name__ == '__main__':
-    logger.basicConfig(level=logger.INFO)
     path_to_images = os.getenv('PATH_TO_IMAGES')
     if path_to_images is None:
         logger.error('Please set the path to the images')
