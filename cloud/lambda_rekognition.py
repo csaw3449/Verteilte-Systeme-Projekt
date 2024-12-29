@@ -1,3 +1,4 @@
+import cv2
 import boto3
 
 # outside of the lambda function to avoid creating a new client for every invocation (might be changed)
@@ -8,6 +9,10 @@ def lambda_handler(event, context):
     # get the image and iot_id from the event
     image = event['image']
     iot_id = event['iot_id']
+
+    # decode the image
+    image_decoded = cv2.decode('latin1', image)
+    image = cv2.imdecode(bytearray(image_decoded), cv2.IMREAD_COLOR)
 
     # look for similar faces in the collection and check if there is a 90% match
     response = rekognition.search_faces_by_image(
