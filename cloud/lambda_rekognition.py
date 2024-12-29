@@ -1,5 +1,6 @@
 import boto3
 
+# outside of the lambda function to avoid creating a new client for every invocation (might be changed)
 rekognition = boto3.client('rekognition')
 
 # this lambda function is triggered by the edge layer and the pictures a located in a container
@@ -29,13 +30,3 @@ def lambda_handler(event, context):
             'status': 'unknown',
             'iot_id': iot_id
         }
-    
-
-
-
-
-    
-
-
-
-    
