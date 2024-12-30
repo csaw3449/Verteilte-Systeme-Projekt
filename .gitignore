@@ -7,6 +7,7 @@
 /iot/data/wisenet_dataset/scripts
 
 # Files
+yolov4_tiny.weights
 iot.tar
 edge.tar
 EC2-key.pem
