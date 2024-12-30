@@ -24,7 +24,7 @@ def create_collection(bucket, collection_id, path_to_images):
             print('Status code: ' + str(response['StatusCode']))
             print('Done...')
             # write the information to the CollectionConfig file
-            with open('CollectionConfig', 'w') as file:
+            with open('CollectionConfig.cfg', 'w') as file:
                 file.write('CollectionId=' + collection_id + '\n')
                 file.write('CollectionArn=' + response['CollectionArn'] + '\n')
                 file.write('Bucket=' + bucket + '\n')
