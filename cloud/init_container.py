@@ -12,7 +12,7 @@ except KeyError:
     exit(1)
 
 def create_collection(bucket, collection_id, path_to_images):
-    session = boto3.Session(profile_name=prof_name)
+    session = boto3.Session(profile_name=prof_name, region_name='us-east-1')
     client = session.client('rekognition')
 
     try:
@@ -46,7 +46,7 @@ def create_collection(bucket, collection_id, path_to_images):
     print('All images are added to the collection')
 
 def create_bucket(bucket_name):
-    session = boto3.Session(profile_name=prof_name)
+    session = boto3.Session(profile_name=prof_name, region_name='us-east-1')
     s3 = session.client('s3')
     try:
         s3.head_bucket(Bucket=bucket_name)
@@ -58,6 +58,7 @@ def create_bucket(bucket_name):
         except ClientError as e:
             logger.error(e)
             return False
+        logger.log('Bucket created')
         return True
 
 if __name__ == '__main__':
