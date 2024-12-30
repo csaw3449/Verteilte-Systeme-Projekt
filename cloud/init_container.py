@@ -4,11 +4,6 @@ import os
 import boto3
 # Create a logger
 logger = logger.getLogger(__name__)
-logger.setLevel(logger.INFO)
-handler = logger.StreamHandler()
-formatter = logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 try: 
     prof_name =os.getenv('PROFILE_NAME')
