@@ -17,7 +17,7 @@ provider "aws" {
 
 
 resource "aws_security_group" "security" {
-  name = "allow-all"
+  name = "allow-all-iot"
 
 
   ingress {
@@ -38,7 +38,7 @@ resource "aws_security_group" "security" {
 }
 
 resource "aws_instance" "app_server" {
-  ami                  = "ami-06b21ccaeff8cd685"
+  ami                  = "ami-01816d07b1128cd2d"
   instance_type        = "t2.micro"
   iam_instance_profile = "LabInstanceProfile"
 
