@@ -14,3 +14,4 @@ EC2-key.pem
 terraform.tfstate
 terraform.tfstate.backup
 /local/yolov3.weights
+/terraform_edge/file_upload/yolov3.weights
