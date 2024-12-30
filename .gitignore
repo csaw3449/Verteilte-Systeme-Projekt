@@ -13,3 +13,6 @@ EC2-key.pem
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+/local/yolov3.weights
+/local/yolov3.cfg
+/local/coco.names

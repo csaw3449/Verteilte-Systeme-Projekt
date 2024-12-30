@@ -14,7 +14,7 @@ VIDEO_PATH = "wisenet_dataset/video_sets/set_1/"
 MODEL_CFG = "yolov3.cfg"
 MODEL_WEIGHTS = "yolov3.weights"
 COCO_NAMES = "coco.names"
-SAVE_DIR = "persons"
+SAVE_DIR = "yolo3"
 CONFIDENCE_THRESHOLD = 0.6
 
 # Load YOLOv3 model
@@ -23,34 +23,6 @@ colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
 
 net = cv2.dnn.readNetFromDarknet(MODEL_CFG, MODEL_WEIGHTS)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-
-def getOutputsNames(net):
-    layersNames = net.getLayerNames()
-    try:
-        unconnected_out_layers = net.getUnconnectedOutLayers()
-        
-        # Debugging: Zeige die Struktur der Rückgabe
-        print(f"UnconnectedOutLayers: {unconnected_out_layers}")
-        print(f"Type of UnconnectedOutLayers: {type(unconnected_out_layers)}")
-
-        # Falls die Rückgabe eine Liste oder ein Tuple ist
-        if isinstance(unconnected_out_layers, (list, tuple)):
-            return [layersNames[i - 1] for i in unconnected_out_layers]
-        
-        # Falls es sich um ein NumPy-Array handelt
-        elif isinstance(unconnected_out_layers, np.ndarray):
-            return [layersNames[int(i) - 1] for i in unconnected_out_layers.flatten()]
-        
-        # Falls es nur ein einzelner Integer ist
-        elif isinstance(unconnected_out_layers, int):
-            return [layersNames[unconnected_out_layers - 1]]
-        
-        else:
-            raise ValueError("Unrecognized format of unconnected_out_layers.")
-    except Exception as e:
-        print(f"Error retrieving output layer names: {e}")
-        return []
-
 
 
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -106,7 +78,9 @@ def process_yolo(frame, iot_id):
         H, W = frame.shape[:2]
         blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
         net.setInput(blob)
-        outputs = net.forward(getOutputsNames(net))
+        ln = net.getLayerNames()
+        ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
+        outputs = net.forward(ln)
 
         boxes = []
         confidences = []
@@ -123,17 +97,24 @@ def process_yolo(frame, iot_id):
                     confidences.append(float(confidence))
                     classIDs.append(classID)
 
+        # NMS (Non-Maximum Suppression)
         indices = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE_THRESHOLD, 0.4)
-        for i in indices.flatten():
-            x, y, w, h = boxes[i]
-            if classIDs[i] == 0:  # Class 0: Person
-                cropped_frame = frame[y:y+h, x:x+w]
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
-                cv2.imwrite(filename, cropped_frame)
-                print(f"Saved cropped image to {filename}")
+        
+        # Check if indices is not empty and flatten it if it is a tuple
+        if len(indices) > 0:
+            indices = indices.flatten() if isinstance(indices, np.ndarray) else indices[0]
+
+            for i in indices:
+                x, y, w, h = boxes[i]
+                if classIDs[i] == 0:  # Class 0: Person
+                    cropped_frame = frame[y:y+h, x:x+w]
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                    filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
+                    cv2.imwrite(filename, cropped_frame)
+                    print(f"Saved cropped image to {filename}")
     except Exception as e:
         print(f"Error processing YOLO: {e}")
+
 
 def main():
     print("Starting the local process...")
