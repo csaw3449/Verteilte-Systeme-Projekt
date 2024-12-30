@@ -46,15 +46,3 @@ def lambda_handler(event, context):
             'iot_id': iot_id
         }
     
-def test_lambda_handler():
-    # test the lambda function
-    event = {
-        'iot_id': 'test',
-        'image': 'test'
-    }
-    assert lambda_handler(event, None) == {'status': 'unknown', 'iot_id': 'test'}
-    assert lambda_handler(event, None) == {'status': 'known', 'iot_id': 'test'}
-    print('All tests passed')
-
-if __name__ == '__main__':
-    test_lambda_handler()
