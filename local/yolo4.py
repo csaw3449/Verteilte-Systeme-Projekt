@@ -11,10 +11,10 @@ SECONDS_BETWEEN_IMAGES = 3
 DELAY_IMAGES = FRAME_RATE * SECONDS_BETWEEN_IMAGES
 IOT_ID = 5
 VIDEO_PATH = "wisenet_dataset/video_sets/set_1/"
-MODEL_CFG = "yolov3.cfg"
-MODEL_WEIGHTS = "yolov3.weights"
+MODEL_CFG = "yolov4_tiny.cfg"
+MODEL_WEIGHTS = "yolov4_tiny.weights"
 COCO_NAMES = "coco.names"
-SAVE_DIR = "yolo3"
+SAVE_DIR = "yolo4"
 CONFIDENCE_THRESHOLD = 0.6
 
 # Load YOLOv3 model
