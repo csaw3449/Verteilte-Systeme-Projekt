@@ -3,7 +3,7 @@ import os
 import boto3
 
 try: 
-    prof_name =os.getenv('PROFILE_NAME')
+    prof_name = os.getenv('AWS_DEFAULT_PROFILE')
 except KeyError:
     print('Please set the profile name')
     exit(1)
@@ -76,6 +76,6 @@ if __name__ == '__main__':
     if path_to_images is None:
         print('Please set the path to the images')
         exit(1)
-    create_bucket('pfusch-bucket')
-    add_images_to_bucket('pfusch-bucket', path_to_images)
-    create_collection('pfusch-bucket', 'pfusch-collection', path_to_images)
+    create_bucket('pfusch-bucket2')
+    add_images_to_bucket('pfusch-bucket2', path_to_images)
+    create_collection('pfusch-bucket2', 'pfusch-collection', path_to_images)
