@@ -3,12 +3,12 @@ import os
 import boto3
 
 try: 
-    prof_name = os.getenv('AWS_DEFAULT_PROFILE')
+    prof_name =os.getenv('PROFILE_NAME')
 except KeyError:
     print('Please set the profile name')
     exit(1)
 
-def create_collection(bucket, collection_id, path_to_images):
+def create_collection(collection_id, path_to_images):
     session = boto3.Session(profile_name=prof_name, region_name='us-east-1')
     client = session.client('rekognition')
 
@@ -27,22 +27,24 @@ def create_collection(bucket, collection_id, path_to_images):
             with open('CollectionConfig.cfg', 'w') as file:
                 file.write('CollectionId=' + collection_id + '\n')
                 file.write('CollectionArn=' + response['CollectionArn'] + '\n')
-                file.write('Bucket=' + bucket + '\n')
         except ClientError as e:
             print(e)
             return False
 
     # read images from a given path and add them to the collection
+
+    indexed_faces_count = 0
     with os.scandir(path_to_images) as entries:
         for entry in entries:
             if entry.is_file():
-                indexed_faces_count = client.index_faces(CollectionId=collection_id,
-                Image={'S3Object': {'Bucket': bucket, 'Name': entry.name}},
-                                  ExternalImageId=entry.name,
-                                  MaxFaces=1,
-                                  QualityFilter="NONE",
-                                  DetectionAttributes=['ALL'])
-                print("Faces indexed: " + str(indexed_faces_count))
+                response = client.index_faces(CollectionId=collection_id,
+                                              Image={'Bytes': open(entry.path, 'rb').read()},
+                                              MaxFaces=1,
+                                              QualityFilter="NONE",
+                                              DetectionAttributes=['ALL'])
+                indexed_faces_count += len(response['FaceRecords'])
+                print(f"Faces indexed from {entry.name}: " + str(len(response['FaceRecords'])))
+    print("Total faces indexed: " + str(indexed_faces_count))
 
     print('All images are added to the collection')
 
@@ -76,6 +78,6 @@ if __name__ == '__main__':
     if path_to_images is None:
         print('Please set the path to the images')
         exit(1)
-    create_bucket('pfusch-bucket2')
-    add_images_to_bucket('pfusch-bucket2', path_to_images)
-    create_collection('pfusch-bucket2', 'pfusch-collection', path_to_images)
+    #create_bucket('pfusch-bucket')
+    #add_images_to_bucket('pfusch-bucket', path_to_images)
+    create_collection('pfusch-collection', path_to_images)
