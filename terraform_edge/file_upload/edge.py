@@ -22,7 +22,7 @@ This programm requires environment variables to be set:
 
 # Configuration for the EC2
 REGION_NAME = "us-east-1"
-CLOUD_LAMBDA_FUNCTION = "processImage"  #TODO: Set the actual Lambda function name
+CLOUD_LAMBDA_FUNCTION = "lambda_handler" # Name of the cloud Lambda function
 IMAGES_QUEUE_NAME = "images"
 ALARM_QUEUE_NAME = "alarm"
 
@@ -104,7 +104,7 @@ def process_yolo(frame, iot_id):
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     print(f"Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
                     # Send the cropped image to the cloud
-                    # threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
+                    threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
     
                     # Save the cropped image
                     filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
