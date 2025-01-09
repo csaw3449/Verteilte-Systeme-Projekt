@@ -24,6 +24,8 @@ def lambda_handler(event, context):
     # Re-encode the image to base 64
     _, image_buffer = cv2.imencode('.jpg', image)
     image64 = base64.b64encode(image_buffer)
+    # convet the image to bytes
+    image64 = image64.encode('utf-8')
 
     # look for similar faces in the collection and check if there is a 90% match
     response = rekognition.search_faces_by_image(
