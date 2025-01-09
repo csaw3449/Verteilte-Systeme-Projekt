@@ -10,7 +10,7 @@ ssh -i "EC2-key.pem" ec2-user@$host sudo systemctl enable docker
 ssh -i "EC2-key.pem" ec2-user@$host sudo docker load -i iot.tar
 ssh -i "EC2-key.pem" ec2-user@$host sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ssh -i "EC2-key.pem" ec2-user@$host sudo chmod +x /usr/local/bin/docker-compose
-ssh -i "EC2-key.pem" ec2-user@$host sudo docker-compose up -d
+# ssh -i "EC2-key.pem" ec2-user@$host sudo docker-compose up -d
 
 
 # Connect to ssh

@@ -17,7 +17,7 @@ provider "aws" {
 
 
 resource "aws_security_group" "security" {
-  name = "allow-all-iot"
+  name = "allow-ssh"
 
 
   ingress {
@@ -60,6 +60,6 @@ resource "aws_instance" "app_server" {
 
 
   tags = {
-    Name = "iot-Devices"
+    Name = "iot-DevicesTes"
   }
 }

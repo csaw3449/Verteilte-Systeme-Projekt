@@ -13,7 +13,7 @@ def lambda_handler(event, context):
     iot_id = event['iot_id']
     
     # decode the image
-    image_decoded = image.encode('latin1', image)
+    image_decoded = image.encode('latin1')
     image = cv2.imdecode(np.frombuffer(image_decoded, np.uint8), cv2.IMREAD_COLOR)
     if image is None:
         return {
@@ -21,18 +21,22 @@ def lambda_handler(event, context):
             'iot_id': iot_id
         }
     
-    # Re-encode the image to base 64
+    # Re-encode the image to raw binary bytes
     _, image_buffer = cv2.imencode('.jpg', image)
-    image64 = base64.b64encode(image_buffer)
+    image_bytes = image_buffer.tobytes()
+    
+    # Re-encode the image to base 64
+    #_, image_buffer = cv2.imencode('.jpg', image)
+    #image64 = base64.b64encode(image_buffer)
     # convet the image to bytes
-    image64 = image64.encode('utf-8')
+    #image64 = image64.encode('utf-8')
 
     # look for similar faces in the collection and check if there is a 90% match
     response = rekognition.search_faces_by_image(
         CollectionId='pfusch-collection',
         QualityFilter='NONE',
         Image={
-            'Bytes': image64
+            'Bytes': image_bytes
         },
         FaceMatchThreshold=90
     )

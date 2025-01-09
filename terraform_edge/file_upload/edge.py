@@ -28,7 +28,7 @@ ALARM_QUEUE_NAME = "alarm"
 
 # Congiguration for YOLO
 MODEL_CFG = "yolov4_tiny.cfg"
-MODEL_WEIGHTS = "yolov4_tiny.weights"
+MODEL_WEIGHTS = "yolov4-tiny.weights"
 COCO_NAMES = "coco.names"
 SAVE_DIR = "yolo4"
 CONFIDENCE_THRESHOLD = 0.6
