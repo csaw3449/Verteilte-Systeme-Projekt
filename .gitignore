@@ -1,6 +1,6 @@
 # Folder 
 /terraform_iot/.terraform
-/terraform_edge/.terraform
+/edge/.terraform
 /iot/data/wisenet_dataset/automatic_annotaitons
 /iot/data//wisenet_datasetmanual_annotations
 /iot/data/wisenet_dataset/network_environment
