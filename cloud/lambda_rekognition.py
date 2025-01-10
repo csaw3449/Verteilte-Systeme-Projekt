@@ -37,14 +37,20 @@ def lambda_handler(event, context):
         }
 
     # look for similar faces in the collection and check if there is a 90% match
-    response = rekognition.search_faces_by_image(
-        CollectionId='pfusch-collection',
-        QualityFilter='NONE',
-        Image={
-            'Bytes': image64
-        },
-        FaceMatchThreshold=70
-    )
+    try:
+        response = rekognition.search_faces_by_image(
+            CollectionId='pfusch-collection',
+            QualityFilter='NONE',
+            Image={
+                'Bytes': image64
+            },
+            FaceMatchThreshold=70
+        )
+    except Exception as e:
+        return {
+            'status': 'no_face',
+            'iot_id': iot_id
+        }
 
     # if there is a match, return the status known otherwise unknown
     if len(response['FaceMatches']) > 0:
