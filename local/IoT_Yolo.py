@@ -2,8 +2,9 @@ import cv2
 import os
 import json
 import time
+import base64
 import numpy as np
-from ultralytics import YOLO
+#from ultralytics import YOLO
 from datetime import datetime
 
 """
@@ -19,20 +20,28 @@ seconds_between_images = 3 # 3 seconds between each image
 delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 iot_id = 5
-model = YOLO("yolov8n.pt")  # Hope this is standart YOLO weights file
+#model = YOLO("yolov8n.pt")  # Hope this is standart YOLO weights file
 
 save_dir = "persons"
 os.makedirs(save_dir, exist_ok=True)  # Ensure the directory exists
 
 def send_frame(frame):
     try:
-        _, encoded_image = cv2.imencode(".jpg", frame)
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+        _, encoded_image = cv2.imencode(".jpg", frame, encode_param)
+        #print(f"Frame encoded: {encoded_image}", flush=True)
+        #print(f"Fram size: {encoded_image.nbytes}", flush=True)#size of the image in bytes
+        #height, width, channels = frame.shape        
+        #print(f"Frame shape: height:{height} x width:{width} x channels:{channels}", flush=True)
         message = {
             "iot_id": iot_id,
-            "frame": encoded_image.tobytes().decode("latin1"),  # Convert bytes to string
+            "frame": base64.b64encode(encoded_image).decode("utf-8")  # Base64 -> UTF-8 string
         }
         message = json.dumps(message)
-        # print(f"Frame decoded: {message}", flush=True)
+        #print the message size in bytes
+        #print(len(message.encode("utf-8")), flush=True)      
+        #print(f"Message size: {message.size}", flush=True)
+        
         receive_frame(message)
     except Exception as e:
         print(f"Error sending frame: {e}", flush=True)
@@ -70,13 +79,17 @@ def receive_frame(message):
     Receive the image
     """
     body = json.loads(message)
-    frame_data = body["frame"].encode("latin1")  # Decode string to bytes
+    frame_data = base64.b64decode(body["frame"])  # Decode the base64 string to bytes
     frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
     iot_id = body["iot_id"]
 
     print(f"Received image from IoT {iot_id}.", flush=True)
 
-    process_yolo(frame, iot_id)
+    #cv2.imshow("Received Frame", frame)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+
+    #process_yolo(frame, iot_id)
 
 def process_yolo(frame, iot_id):
     try:

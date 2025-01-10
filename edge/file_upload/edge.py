@@ -4,6 +4,7 @@ import json
 import time
 import cv2
 import os
+import base64
 import numpy as np
 import time
 import botocore.exceptions
@@ -124,7 +125,7 @@ def send_to_cloud(frame, iot_id):
         _, encoded_image = cv2.imencode(".jpg", frame)
         payload = {
             "iot_id": iot_id,
-            "image": encoded_image.tobytes().decode("latin1")  # Convert bytes to JSON serializable string
+            "image": base64.b64encode(encoded_image).decode("utf-8")    # Base64 -> UTF-8 String
         }
 
         response = lambda_client.invoke(
@@ -172,7 +173,7 @@ def listen_for_images():
             messages = images_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10)
             for message in messages:
                 body = json.loads(message.body)
-                frame_data = body["frame"].encode("latin1")  # Decode string to bytes
+                frame_data = base64.b64decode(body["frame"])    # Decode the base64 string to bytes
                 frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
                 iot_id = body["iot_id"]
 

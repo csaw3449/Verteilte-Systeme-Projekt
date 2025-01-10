@@ -4,6 +4,7 @@ import cv2
 import time
 import threading
 import boto3
+import base64
 import json
 import botocore.exceptions
 
@@ -49,10 +50,11 @@ receive_queue = get_queue("alarm")
 # Function to send frames
 def send_frame(frame):
     try:
-        _, encoded_image = cv2.imencode(".jpg", frame)
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+        _, encoded_image = cv2.imencode(".jpg", frame, encode_param)
         message = {
             "iot_id": id,
-            "frame": encoded_image.tobytes().decode("latin1"),  # Convert bytes to string
+            "frame": base64.b64encode(encoded_image).decode("utf-8")  # Base64 -> UTF-8 string
         }
         send_queue.send_message(MessageBody=json.dumps(message))
         print(f"Frame sent to queue: {message}", flush=True)
