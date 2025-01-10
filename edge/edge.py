@@ -98,8 +98,14 @@ def send_to_cloud(frame, iot_id):
         response_payload = json.loads(response["Payload"].read())   #TODO: Check for response format
         if response_payload.get("status") == "unknown":
             trigger_alarm(iot_id)
+        elif response_payload.get("status") == "error":
+            print(f"Error processing image for IoT device {iot_id}.", flush=True)
+        elif response_payload.get("status") == "known":
+            print(f"Known person recognized for IoT device {iot_id}.", flush=True)
+        elif response_payload.get("status") == "no_face":
+            print(f"No face detected in the image from IoT device {iot_id}.", flush=True)
         else:
-            print(f"Person recognized for IoT device {iot_id}.", flush=True)
+            print(f"Unknown response from cloud: {response_payload}", flush=True)
     except Exception as e:
         print(f"Error sending to cloud: {e}", flush=True)
 
