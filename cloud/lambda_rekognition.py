@@ -13,6 +13,7 @@ def lambda_handler(event, context):
     iot_id = event['iot_id']
     
     # decode the image
+    '''
     image_decoded = image.encode('latin1')
     image_buffer = cv2.imdecode(np.frombuffer(image_decoded, np.uint8), cv2.IMREAD_COLOR)
     if image_buffer is None:
@@ -20,17 +21,19 @@ def lambda_handler(event, context):
             'status': 'error',
             'iot_id': iot_id
         }
+    '''
+
     # Re-encode the image to raw binary bytes
     # _, image_buffer = cv2.imencode('.jpg', image)
-    image_bytes = image_buffer.tobytes()
+    image_bytes = image.tobytes()
     
     # Re-encode the image to base 64
     #_, image_buffer = cv2.imencode('.jpg', image)
-    image64 = base64.b64encode(image_bytes)
+    # image64 = base64.b64encode(image_bytes)
     # convet the image to bytes
     #image64 = image64.encode('utf-8')
     # error handling
-    if image64 is None:
+    if image_bytes is None:
         return {
             'status': 'error',
             'iot_id': iot_id
@@ -42,7 +45,7 @@ def lambda_handler(event, context):
             CollectionId='pfusch-collection',
             QualityFilter='NONE',
             Image={
-                'Bytes': image64
+                'Bytes': image_bytes
             },
             FaceMatchThreshold=70
         )
