@@ -12,28 +12,9 @@ def lambda_handler(event, context):
     image = event['image']
     iot_id = event['iot_id']
     
-    # decode the image
-    '''
-    image_decoded = image.encode('latin1')
-    image_buffer = cv2.imdecode(np.frombuffer(image_decoded, np.uint8), cv2.IMREAD_COLOR)
-    if image_buffer is None:
-        return {
-            'status': 'error',
-            'iot_id': iot_id
-        }
-    '''
-
-    # Re-encode the image to raw binary bytes
-    # _, image_buffer = cv2.imencode('.jpg', image)
     image_bytes = base64.b64decode(image)
     image_base64 = base64.b64encode(image_bytes)
     
-    # Re-encode the image to base 64
-    #_, image_buffer = cv2.imencode('.jpg', image)
-    # image64 = base64.b64encode(image_bytes)
-    # convet the image to bytes
-    #image64 = image64.encode('utf-8')
-    # error handling
     if image_base64 is None:
         return {
             'status': 'error',
@@ -42,20 +23,14 @@ def lambda_handler(event, context):
         }
 
     # look for similar faces in the collection and check if there is a 90% match
-    try:
-        response = rekognition.search_faces_by_image(
-            CollectionId='pfusch-collection',
-            QualityFilter='NONE',
-            Image={
-                'Bytes': image_base64
-            },
-            FaceMatchThreshold=70
-        )
-    except Exception as e:
-        return {
-            'status': 'no_face',
-            'iot_id': iot_id
-        }
+    response = rekognition.search_faces_by_image(
+        CollectionId='pfusch-collection',
+        QualityFilter='NONE',
+        Image={
+            'Bytes': image_base64
+        },
+        FaceMatchThreshold=70
+    )
 
     # if there is a match, return the status known otherwise unknown
     if len(response['FaceMatches']) > 0:
