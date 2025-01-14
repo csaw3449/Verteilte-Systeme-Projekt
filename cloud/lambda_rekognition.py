@@ -12,6 +12,7 @@ def lambda_handler(event, context):
     image = event['image']
     iot_id = event['iot_id']
     
+    # decode the image from base64, if it not works remove this lines
     image_bytes = base64.b64decode(image)
     image_base64 = base64.b64encode(image_bytes)
     
