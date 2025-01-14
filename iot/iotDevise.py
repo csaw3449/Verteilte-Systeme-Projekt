@@ -57,7 +57,7 @@ def send_frame(frame):
             "frame": base64.b64encode(encoded_image).decode("utf-8")  # Base64 -> UTF-8 string
         }
         send_queue.send_message(MessageBody=json.dumps(message))
-        print(f"Frame sent to queue: {message}", flush=True)
+        print(f"Frame sent to queue", flush=True)
     except Exception as e:
         print(f"Error sending frame: {e}", flush=True)
         print("Retrying to send frame in 5 seconds...", flush=True)
