@@ -77,6 +77,6 @@ if __name__ == '__main__':
     if path_to_images is None:
         print('Please set the path to the images')
         exit(1)
-    create_bucket('pfusch-bucket5')
-    add_images_to_bucket('pfusch-bucket5', path_to_images)
-    create_collection('pfusch-bucket5', 'pfusch-collection', path_to_images)
+    create_bucket('pfusch-bucket500')
+    add_images_to_bucket('pfusch-bucket500', path_to_images)
+    create_collection('pfusch-bucket500', 'pfusch-collection', path_to_images)

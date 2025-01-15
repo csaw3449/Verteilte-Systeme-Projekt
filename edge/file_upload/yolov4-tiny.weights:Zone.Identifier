@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://github.com/AlexeyAB/darknet/releases
+HostUrl=https://objects.githubusercontent.com/github-production-release-asset-2e65be/75388965/9bb2e8b0-ffab-435f-9c49-97e353558735?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250114%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250114T120028Z&X-Amz-Expires=300&X-Amz-Signature=6f82bdf2dc1dfe76fc31b9ea4baa9a132d90730cf6bec6e3ff661af4851edf8d&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Dyolov4-tiny.weights&response-content-type=application%2Foctet-stream
