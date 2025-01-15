@@ -52,16 +52,25 @@ def create_bucket(bucket_name):
     s3 = session.client('s3')
     try:
         s3.head_bucket(Bucket=bucket_name)
-        print('Bucket already exists')
+        print("Bucket exists and is accessible.")
         return True
     except ClientError as e:
-        try:
-            s3.create_bucket(Bucket=bucket_name)
-        except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code in ('404', 'NoSuchBucket'):
+            # Create the missing bucket
+            try:
+                s3.create_bucket(Bucket=bucket_name)
+                print(f"Bucket '{bucket_name}' created.")
+                return True
+            except ClientError as create_err:
+                print(create_err)
+                return False
+        elif error_code == '403':
+            print(f"Bucket '{bucket_name}' exists but access is denied.")
+            return False
+        else:
             print(e)
             return False
-        print('Bucket created')
-        return True
 
 def add_images_to_bucket(bucket_name, path_to_images):
     session = boto3.Session(profile_name=prof_name, region_name='us-east-1')
@@ -73,10 +82,11 @@ def add_images_to_bucket(bucket_name, path_to_images):
                 print('Image uploaded to bucket: ' + entry.name)
 
 if __name__ == '__main__':
+    bucket_name = input('Enter the s3 bucket name: ')
     path_to_images = os.getenv('PATH_TO_IMAGES')
     if path_to_images is None:
-        print('Please set the path to the images')
+        print('Please set the path to the images with the environment variable PATH_TO_IMAGES')   
         exit(1)
-    create_bucket('pfusch-bucket5')
-    add_images_to_bucket('pfusch-bucket5', path_to_images)
-    create_collection('pfusch-bucket5', 'pfusch-collection', path_to_images)
+    create_bucket(bucket_name)
+    add_images_to_bucket(bucket_name, path_to_images)
+    create_collection(bucket_name, 'pfusch-collection', path_to_images)
