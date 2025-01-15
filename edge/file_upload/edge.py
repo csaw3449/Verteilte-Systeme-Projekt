@@ -7,6 +7,7 @@ import os
 import base64
 import numpy as np
 import time
+import matplotlib.pyplot as plt
 import botocore.exceptions
 from datetime import datetime
 
@@ -39,6 +40,10 @@ CONFIDENCE_THRESHOLD = 0.6
 sqs = boto3.resource("sqs", region_name=REGION_NAME)
 lambda_client = boto3.client("lambda", region_name=REGION_NAME)
 
+#Benchmark variables
+start_time = list()
+end_time = list()
+msg_count = 0
 
 #Function to get the queue
 def get_queue(queue_name):
@@ -100,6 +105,8 @@ def process_yolo(frame, iot_id):
             indices = indices.flatten() if isinstance(indices, np.ndarray) else indices[0]
             for i in indices:
                 x, y, w, h = boxes[i]
+                end_time.append(time.time())
+                
                 if classIDs[i] == 0:  # Class 0: Person
                     cropped_frame = frame[y:y+h, x:x+w]
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -148,9 +155,20 @@ def send_to_cloud(frame, iot_id):
     except Exception as e:
         print(f"Error sending to cloud: {e}", flush=True)
 
+def plot_benchmarks():
+    time_diff = np.array(end_time) - np.array(start_time)
+    x_values = np.arange(1, len(time_diff) + 1)
+    # Create the plot
+    plt.figure(figsize=(10, 6))  # Set figure size
+    plt.plot(x_values, time_diff, color='blue', linestyle='-', marker='o', label='Time per message')
+    plt.xlabel("Message Number")
+    plt.ylabel("Time (seconds)")
+    plt.title("Time Taken for Each Message")
+    plt.grid(True)
+    plt.legend()
 
-
-
+    # Save the plot with high resolution
+    plt.savefig("time_diff.png", dpi=300, bbox_inches='tight')
 
 
 def trigger_alarm(iot_id):
@@ -171,7 +189,9 @@ def listen_for_images():
     while True:
         try:
             messages = images_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10)
+            start_time.append(time.time())
             for message in messages:
+                msg_count = msg_count + 1
                 body = json.loads(message.body)
                 frame_data = base64.b64decode(body["frame"])    # Decode the base64 string to bytes
                 frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
@@ -181,7 +201,8 @@ def listen_for_images():
 
                 message.delete()
                 process_yolo(frame, iot_id)
-
+                if msg_count == 500:
+                    plot_benchmarks()
         except Exception as e:
             print(f"Error receiving image messages: {e}", flush=True)
             time.sleep(5)  # Retry delay

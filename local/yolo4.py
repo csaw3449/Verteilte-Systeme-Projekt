@@ -30,6 +30,12 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 def send_frame(frame):
     try:
         _, encoded_image = cv2.imencode(".jpg", frame)
+        
+        print(f"Frame encoded: {encoded_image}", flush=True)
+        print(f"Fram size: {encoded_image.nbytes}", flush=True)#size of the image in bytes
+        height, width, channels = frame.shape        
+        print(f"Frame shape: height:{height} x width:{width} x channels:{channels}", flush=True)
+        
         message = {
             "iot_id": IOT_ID,
             "frame": encoded_image.tobytes().decode("latin1"),
