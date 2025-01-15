@@ -1,6 +1,5 @@
-import cv2
+import boto3.exceptions
 import boto3
-import numpy as np
 import base64
 
 # outside of the lambda function to avoid creating a new client for every invocation (might be changed)
@@ -14,9 +13,8 @@ def lambda_handler(event, context):
     
     # decode the image from base64, if it not works remove this lines
     image_bytes = base64.b64decode(image)
-    image_base64 = base64.b64encode(image_bytes)
-    
-    if image_base64 is None:
+
+    if image_bytes is None:
         return {
             'status': 'error',
             'iot_id': iot_id,
@@ -24,14 +22,28 @@ def lambda_handler(event, context):
         }
 
     # look for similar faces in the collection and check if there is a 90% match
-    response = rekognition.search_faces_by_image(
-        CollectionId='pfusch-collection',
-        QualityFilter='NONE',
-        Image={
-            'Bytes': image_base64
-        },
-        FaceMatchThreshold=70
-    )
+    try:
+        response = rekognition.search_faces_by_image(
+            CollectionId='pfusch-collection',
+            QualityFilter='NONE',
+            Image={
+                'Bytes': image_bytes
+            },
+            
+            FaceMatchThreshold=70
+        )
+    except rekognition.exceptions.InvalidParameterException as e:
+        return {
+            'status': 'no_face',
+            'iot_id': iot_id,
+            'error': 'no face detected'
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'iot_id': iot_id,
+            'error': str(e)
+        }
 
     # if there is a match, return the status known otherwise unknown
     if len(response['FaceMatches']) > 0:
