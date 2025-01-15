@@ -85,7 +85,7 @@ if __name__ == '__main__':
     bucket_name = input('Enter the s3 bucket name: ')
     path_to_images = os.getenv('PATH_TO_IMAGES')
     if path_to_images is None:
-        print('Please set the path to the images with the environment variable PATH_TO_IMAGES')   
+        print('Please set the path to the image folder with the environment variable PATH_TO_IMAGES="path"')   
         exit(1)
     create_bucket(bucket_name)
     add_images_to_bucket(bucket_name, path_to_images)
