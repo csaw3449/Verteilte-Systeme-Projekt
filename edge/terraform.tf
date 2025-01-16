@@ -38,7 +38,7 @@ resource "aws_security_group" "security" {
 }
 
 resource "aws_instance" "app_server" {
-  ami                  = "ami-01816d07b1128cd2d"
+  ami                  = "ami-024fa587fa48a8a4b"
   instance_type        = "t2.micro"
   iam_instance_profile = "LabInstanceProfile"
 
@@ -60,6 +60,6 @@ resource "aws_instance" "app_server" {
 
 
   tags = {
-    Name = "Edge-Devices"
+    Name = "Edge-Devices2"
   }
 }

@@ -6,7 +6,6 @@ import cv2
 import os
 import base64
 import numpy as np
-import time
 import matplotlib.pyplot as plt
 import botocore.exceptions
 from datetime import datetime
@@ -32,7 +31,6 @@ ALARM_QUEUE_NAME = "alarm"
 MODEL_CFG = "yolov4-tiny.cfg"
 MODEL_WEIGHTS = "yolov4-tiny.weights"
 COCO_NAMES = "coco.names"
-SAVE_DIR = "yolo4"
 ALARM_DIR = "Unknown_persons"
 CONFIDENCE_THRESHOLD = 0.6
 
@@ -65,8 +63,6 @@ colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
 
 net = cv2.dnn.readNetFromDarknet(MODEL_CFG, MODEL_WEIGHTS)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-
-os.makedirs(SAVE_DIR, exist_ok=True)
 
 def process_yolo(frame, iot_id,end_time):
     """
@@ -111,11 +107,6 @@ def process_yolo(frame, iot_id,end_time):
                     # Send the cropped image to the cloud
                     time.sleep(1)
                     threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
-    
-                    # Save the cropped image
-                    filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
-                    cv2.imwrite(filename, cropped_frame)
-                    # print(f"Saved cropped image to {filename}")
                 else:
                     print(f"EDGE: No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
     except Exception as e:
@@ -142,7 +133,7 @@ def send_to_cloud(frame, iot_id):
         response_payload = json.loads(response["Payload"].read())   #TODO: Check for response format
         if response_payload.get("status") == "unknown":
 
-            trigger_alarm(iot_id, encoded_image)
+            trigger_alarm(iot_id, frame)
         elif response_payload.get("status") == "error":
             print(f"CLOUD: Error processing image for IoT device {iot_id}.", flush=True)
             print(f"CLOUD: Error message: {response_payload.get('error')}", flush=True)
@@ -156,21 +147,26 @@ def send_to_cloud(frame, iot_id):
         print(f"EDGE: Error sending to cloud: {e}", flush=True)
 
 def plot_benchmarks(start_time, end_time):
-    time_diff = np.array(end_time) - np.array(start_time)
-    x_values = np.arange(1, len(time_diff) + 1)
-    # Create the plot
-    plt.figure(figsize=(10, 6))  # Set figure size
-    plt.plot(x_values, time_diff, color='blue', linestyle='-', marker='o', label='Time per message')
-    plt.xlabel("Message Number")
-    plt.ylabel("Time (seconds)")
-    plt.title("Time Taken for Each Message")
-    plt.grid(True)
-    plt.legend()
-    #Convert plot to a jpg image and save it in the PLOTS directory
-    plt.savefig("./plots/time_diff.jpg",)
-
-    # Save the plot with high resolution
-    plt.savefig("time_diff.png", dpi=300, bbox_inches='tight')
+    try:
+        os.makedirs("plots", exist_ok=True)
+        time_diff = np.array(end_time) - np.array(start_time)
+        x_values = np.arange(1, len(time_diff) + 1)
+        # Create the plot
+        plt.figure(figsize=(10, 6))  # Set figure size
+        plt.plot(x_values, time_diff, color='blue', linestyle='-', marker='o', label='Time per message')
+        plt.xlabel("Message Number")
+        plt.ylabel("Time (seconds)")
+        plt.title("Time Taken for Each Message")
+        plt.grid(True)
+        plt.legend()
+        #Convert plot to a jpg image and save it in the PLOTS directory
+        plt.savefig("./plots/time_diff.jpg",)
+        # Save the plot with high resolution
+        plt.savefig(os.path.join("plots", "time_diff.jpg"), dpi=300, bbox_inches='tight')#
+    except Exception as e:
+        print(f"Error plotting benchmarks: {e}", flush=True)
+    finally:
+        exit()
 
 
 def trigger_alarm(iot_id, frame):
@@ -184,7 +180,7 @@ def trigger_alarm(iot_id, frame):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         filename = os.path.join(ALARM_DIR, f"person_{timestamp}.jpg")
         cv2.imwrite(filename, frame)
-        #(f"Alarm triggered for IoT device {iot_id}.", flush=True)
+        print(f"Edge: Alarm triggered for IoT device {iot_id}.", flush=True)
     except Exception as e:
         print(f"Error triggering alarm: {e}", flush=True)
 
@@ -210,6 +206,7 @@ def listen_for_images():
 
                 message.delete()
                 process_yolo(frame, iot_id, end_time)
+                print(f"EDGE: {msg_count} messages already processed.", flush=True)
                 if msg_count == 100:
                     plot_benchmarks(start_time=start_time,end_time=end_time)
         except Exception as e:
@@ -218,11 +215,14 @@ def listen_for_images():
 
 
 def main():
-    # Create threads for image and alarm listeners
-    image_thread = threading.Thread(target=listen_for_images)
-
-    # Start the threads
-    image_thread.start()
+    try:
+        os.makedirs(ALARM_DIR, exist_ok=True)
+        # Create threads for image and alarm listeners
+        image_thread = threading.Thread(target=listen_for_images)
+        # Start the threads
+        image_thread.start()
+    except Exception as e:
+        print(f"Error in main: {e}", flush=True)
 
     # No join threads because they run indefinitely
 
