@@ -33,6 +33,7 @@ MODEL_CFG = "yolov4-tiny.cfg"
 MODEL_WEIGHTS = "yolov4-tiny.weights"
 COCO_NAMES = "coco.names"
 SAVE_DIR = "yolo4"
+ALARM_DIR = "Unknown_persons"
 CONFIDENCE_THRESHOLD = 0.6
 
 
@@ -40,10 +41,6 @@ CONFIDENCE_THRESHOLD = 0.6
 sqs = boto3.resource("sqs", region_name=REGION_NAME)
 lambda_client = boto3.client("lambda", region_name=REGION_NAME)
 
-#Benchmark variables
-start_time = list()
-end_time = list()
-msg_count = 0
 
 #Function to get the queue
 def get_queue(queue_name):
@@ -51,11 +48,11 @@ def get_queue(queue_name):
     sqs = boto3.resource("sqs", region_name="us-east-1")
     while True:
         try:
-            print(f"Attempting to fetch queue: {queue_name}", flush=True)
+            print(f"EDGE: Attempting to fetch queue: {queue_name}", flush=True)
             return sqs.get_queue_by_name(QueueName=queue_name)
         except botocore.exceptions.ClientError as e:
-            print(f"Failed to fetch queue {queue_name}: {e}", flush=True)
-            print(f"Retrying in 5 seconds...", flush=True)
+            print(f"EDGE: Failed to fetch queue {queue_name}: {e}", flush=True)
+            print(f"EDGE: Retrying in 5 seconds...", flush=True)
             time.sleep(5)
 
 # connect to the queues
@@ -71,7 +68,7 @@ net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-def process_yolo(frame, iot_id):
+def process_yolo(frame, iot_id,end_time):
     """
     Run YOLO filtering on the frame and send valid images to the cloud Lambda function.
     Also start a thread for sending and receiving the message to the cloud.
@@ -110,18 +107,19 @@ def process_yolo(frame, iot_id):
                 if classIDs[i] == 0:  # Class 0: Person
                     cropped_frame = frame[y:y+h, x:x+w]
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                    print(f"Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
+                    print(f"EDGE: Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
                     # Send the cropped image to the cloud
+                    time.sleep(1)
                     threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
     
                     # Save the cropped image
                     filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
                     cv2.imwrite(filename, cropped_frame)
-                    print(f"Saved cropped image to {filename}")
+                    # print(f"Saved cropped image to {filename}")
                 else:
-                    print(f"No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
+                    print(f"EDGE: No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
     except Exception as e:
-        print(f"Error in YOLO processing: {e}", flush=True)
+        print(f"EDGE: Error in YOLO processing: {e}", flush=True)
 
 
 def send_to_cloud(frame, iot_id):
@@ -143,20 +141,21 @@ def send_to_cloud(frame, iot_id):
 
         response_payload = json.loads(response["Payload"].read())   #TODO: Check for response format
         if response_payload.get("status") == "unknown":
-            trigger_alarm(iot_id)
-        elif response_payload.get("status") == "error":
-            print(f"Error processing image for IoT device {iot_id}.", flush=True)
-            print(f"Error message: {response_payload.get('error')}", flush=True)
-        elif response_payload.get("status") == "known":
-            print(f"Known person recognized for IoT device {iot_id}.", flush=True)
-        elif response_payload.get("status") == "no_face":
-            print(f"No face detected in the image from IoT device {iot_id}.", flush=True)
-        else:
-            print(f"Unknown response from cloud: {response_payload}", flush=True)
-    except Exception as e:
-        print(f"Error sending to cloud: {e}", flush=True)
 
-def plot_benchmarks():
+            trigger_alarm(iot_id, encoded_image)
+        elif response_payload.get("status") == "error":
+            print(f"CLOUD: Error processing image for IoT device {iot_id}.", flush=True)
+            print(f"CLOUD: Error message: {response_payload.get('error')}", flush=True)
+        elif response_payload.get("status") == "known":
+            print(f"CLOUD: Known person recognized for IoT device {iot_id}.", flush=True)
+        elif response_payload.get("status") == "no_face":
+            print(f"CLOUD: No face detected in the image from IoT device {iot_id}.", flush=True)
+        else:
+            print(f"CLOUD: Unknown response from cloud: {response_payload}", flush=True)
+    except Exception as e:
+        print(f"EDGE: Error sending to cloud: {e}", flush=True)
+
+def plot_benchmarks(start_time, end_time):
     time_diff = np.array(end_time) - np.array(start_time)
     x_values = np.arange(1, len(time_diff) + 1)
     # Create the plot
@@ -167,19 +166,25 @@ def plot_benchmarks():
     plt.title("Time Taken for Each Message")
     plt.grid(True)
     plt.legend()
+    #Convert plot to a jpg image and save it in the PLOTS directory
+    plt.savefig("./plots/time_diff.jpg",)
 
     # Save the plot with high resolution
     plt.savefig("time_diff.png", dpi=300, bbox_inches='tight')
 
 
-def trigger_alarm(iot_id):
+def trigger_alarm(iot_id, frame):
     """
     Send an alarm to the IoT device via the alarm SQS queue.
     """
     try:
         alarm_message = {"iot_id": iot_id, "message": "Unknown person detected"}
         alarm_queue.send_message(MessageBody=json.dumps(alarm_message))
-        print(f"Alarm triggered for IoT device {iot_id}.", flush=True)
+        # Save the cropped image
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = os.path.join(ALARM_DIR, f"person_{timestamp}.jpg")
+        cv2.imwrite(filename, frame)
+        #(f"Alarm triggered for IoT device {iot_id}.", flush=True)
     except Exception as e:
         print(f"Error triggering alarm: {e}", flush=True)
 
@@ -187,6 +192,9 @@ def listen_for_images():
     """
     Listen for image messages from the IoT devices via the SQS queue.
     """
+    msg_count = 0
+    start_time = list()
+    end_time = list()
     while True:
         try:
             messages = images_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10)
@@ -201,9 +209,9 @@ def listen_for_images():
                 print(f"Received image from IoT {iot_id}.", flush=True)
 
                 message.delete()
-                process_yolo(frame, iot_id)
-                if msg_count == 500:
-                    plot_benchmarks()
+                process_yolo(frame, iot_id, end_time)
+                if msg_count == 100:
+                    plot_benchmarks(start_time=start_time,end_time=end_time)
         except Exception as e:
             print(f"Error receiving image messages: {e}", flush=True)
             time.sleep(5)  # Retry delay
