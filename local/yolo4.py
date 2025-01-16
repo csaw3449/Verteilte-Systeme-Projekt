@@ -13,17 +13,12 @@ IOT_ID = 5
 VIDEO_PATH = "wisenet_dataset/video_sets/set_4/"
 MODEL_CFG = "yolov4_tiny.cfg"
 MODEL_WEIGHTS = "yolov4-tiny.weights"
-COCO_NAMES = "coco.names"
 SAVE_DIR = "yolo4"
 CONFIDENCE_THRESHOLD = 0.6
 
 # Load YOLOv3 model
-classes = open(COCO_NAMES).read().strip().split('\n')
-colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
-
 net = cv2.dnn.readNetFromDarknet(MODEL_CFG, MODEL_WEIGHTS)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -81,22 +76,31 @@ def receive_frame(message):
 
 def process_yolo(frame, iot_id):
     try:
-        H, W = frame.shape[:2]
+        H, W = frame.shape[:2] #array till second item
+        print(f"Frame: {frame.shape}")
+        print(f"Frame HW: {frame.shape[:2]}")
         blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
         net.setInput(blob)
         ln = net.getLayerNames()
-        ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
-        outputs = net.forward(ln)
+        print(f"ln = {ln}")
+        ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()] # Get the output layer names
+        outputs = net.forward(ln)   # Forward pass through the network and get the outputs of the layers (in this case tuple with 2 output arrays)
 
         boxes = []
         confidences = []
         classIDs = []
+        print(f"Outputs: {len(outputs)}")
+        print(f"ln = {ln}")
         for output in outputs:
+            print(f"Output: {output.shape}")
             for detection in output:
-                scores = detection[5:]
+                #print(f"Detection: {detection.shape}")    #detection is of shape (84,) with 4 coordinates and 80 classes
+                scores = detection[5:]  
+                # print(f"Scores: {scores}")
                 classID = np.argmax(scores)
                 confidence = scores[classID]
                 if confidence > CONFIDENCE_THRESHOLD:
+                    print(f"detection: {detection}")
                     x, y, w, h = detection[:4] * np.array([W, H, W, H])
                     p0 = int(x - w // 2), int(y - h // 2)
                     boxes.append([*p0, int(w), int(h)])
@@ -116,7 +120,10 @@ def process_yolo(frame, iot_id):
                     cropped_frame = frame[y:y+h, x:x+w]
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     filename = os.path.join(SAVE_DIR, f"person_{timestamp}.jpg")
-                    cv2.imwrite(filename, cropped_frame)
+                #    cv2.imwrite(filename, cropped_frame)
+                    cv2.imshow("Cropped Frame", cropped_frame)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
                     print(f"Saved cropped image to {filename}")
     except Exception as e:
         print(f"Error processing YOLO: {e}")
