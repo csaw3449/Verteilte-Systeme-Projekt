@@ -17,7 +17,7 @@ provider "aws" {
 
 
 resource "aws_security_group" "security" {
-  name = "allow-all-edge2"
+  name = "allow-ssh1"
 
 
   ingress {

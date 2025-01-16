@@ -1,6 +1,5 @@
-import cv2
+import boto3.exceptions
 import boto3
-import numpy as np
 import base64
 
 # outside of the lambda function to avoid creating a new client for every invocation (might be changed)
@@ -12,28 +11,14 @@ def lambda_handler(event, context):
     image = event['image']
     iot_id = event['iot_id']
     
-    # decode the image
-    image_decoded = image.encode('latin1')
-    image_buffer = cv2.imdecode(np.frombuffer(image_decoded, np.uint8), cv2.IMREAD_COLOR)
-    if image_buffer is None:
+    # decode the image from base64, if it not works remove this lines
+    image_bytes = base64.b64decode(image)
+
+    if image_bytes is None:
         return {
             'status': 'error',
-            'iot_id': iot_id
-        }
-    # Re-encode the image to raw binary bytes
-    # _, image_buffer = cv2.imencode('.jpg', image)
-    image_bytes = image_buffer.tobytes()
-    
-    # Re-encode the image to base 64
-    #_, image_buffer = cv2.imencode('.jpg', image)
-    image64 = base64.b64encode(image_bytes)
-    # convet the image to bytes
-    #image64 = image64.encode('utf-8')
-    # error handling
-    if image64 is None:
-        return {
-            'status': 'error',
-            'iot_id': iot_id
+            'iot_id': iot_id,
+            'error': 'image could not be decoded'
         }
 
     # look for similar faces in the collection and check if there is a 90% match
@@ -42,14 +27,22 @@ def lambda_handler(event, context):
             CollectionId='pfusch-collection',
             QualityFilter='NONE',
             Image={
-                'Bytes': image64
+                'Bytes': image_bytes
             },
+            
             FaceMatchThreshold=70
         )
-    except Exception as e:
+    except rekognition.exceptions.InvalidParameterException as e:
         return {
             'status': 'no_face',
-            'iot_id': iot_id
+            'iot_id': iot_id,
+            'error': 'no face detected'
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'iot_id': iot_id,
+            'error': str(e)
         }
 
     # if there is a match, return the status known otherwise unknown

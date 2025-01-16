@@ -29,7 +29,7 @@ IMAGES_QUEUE_NAME = "images"
 ALARM_QUEUE_NAME = "alarm"
 
 # Congiguration for YOLO
-MODEL_CFG = "yolov4_tiny.cfg"
+MODEL_CFG = "yolov4-tiny.cfg"
 MODEL_WEIGHTS = "yolov4-tiny.weights"
 COCO_NAMES = "coco.names"
 SAVE_DIR = "yolo4"
@@ -146,6 +146,7 @@ def send_to_cloud(frame, iot_id):
             trigger_alarm(iot_id)
         elif response_payload.get("status") == "error":
             print(f"Error processing image for IoT device {iot_id}.", flush=True)
+            print(f"Error message: {response_payload.get('error')}", flush=True)
         elif response_payload.get("status") == "known":
             print(f"Known person recognized for IoT device {iot_id}.", flush=True)
         elif response_payload.get("status") == "no_face":
