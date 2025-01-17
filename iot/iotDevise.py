@@ -7,22 +7,26 @@ import boto3
 import base64
 import json
 import botocore.exceptions
+import queue 
+import atexit
 
 """
 This program sends images from a video dataset to the edge layer in a specific time interval.
-It also waits for an alarm from the edge layer and prints it.
+It also waits for an alarm from the edge layer and rints it.
 This program requires environment variables to be set:
 - IOT_ID: the ID of the IoT device
 - SET_NUMBER: the number of the video set to be used
 """
 # Configuration
 frame_rate = 30 # Framerate of the videos
-seconds_between_images = 3 # 3 seconds between each image 
+seconds_between_images = 5 # 5 seconds between each image 
 delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 # Environment Variables
 id = os.environ.get("IOT_ID", "default_id")  # Default ID if not set
 set_number = os.environ.get("SET_NUMBER", 1)
+
+responses = queue.Queue(maxsize=500)
 
 # Initialize SQS Queues with Retry Logic
 MAX_RETRIES = 5
@@ -42,7 +46,7 @@ def get_queue(queue_name, retries=0):
             retries += 1
 
     print(f"Failed to fetch queue {queue_name} after {MAX_RETRIES} retries. Exiting.", flush=True)
-    return None  # Return None after reaching max retries
+    exit(1)  # Return None after reaching max retries
 
 send_queue = get_queue("images")
 receive_queue = get_queue("alarm")
@@ -52,9 +56,11 @@ def send_frame(frame):
     try:
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
         _, encoded_image = cv2.imencode(".jpg", frame, encode_param)
+        start_time = time.time()
         message = {
             "iot_id": id,
-            "frame": base64.b64encode(encoded_image).decode("utf-8")  # Base64 -> UTF-8 string
+            "frame": base64.b64encode(encoded_image).decode("utf-8"),  # Base64 -> UTF-8 string
+            "iot_start": start_time
         }
         send_queue.send_message(MessageBody=json.dumps(message))
         print(f"Frame sent to queue", flush=True)
@@ -66,6 +72,9 @@ def send_frame(frame):
 
 # Function to wait for alarms
 def waiting_for_alarm():
+    # make folder for csv files with timestamps
+    if not os.path.exists("times"):
+        os.makedirs("times")
     while True:
         try:
             response = receive_queue.receive_messages(
@@ -75,6 +84,10 @@ def waiting_for_alarm():
                 body = json.loads(message.body)
                 if body.get("iot_id") == id:
                     print(f"Alarm received: {message.body}", flush=True)
+                    # add iot_end to the body
+                    body["iot_end"] = time.time()
+                    # for saving the time in a csv file
+                    responses.put(body)
                     message.delete()
                 else:
                     print(f"Ignoring alarm for {body['iot_id']}", flush=True)
@@ -109,11 +122,23 @@ def send_images():
             print("Retrying image sending in 5 seconds...", flush=True)
             time.sleep(5)
 
+def write_times_in_csv():
+    # write times in csv file
+    filename = f"times/times_{id}.csv"
+    with open(filename, "w") as f:
+        print(f"Writing times in {filename}", flush=True)
+        f.write("iot_start,iot_end\n") # TODO: update this
+        while not responses.empty():
+            response = responses.get()
+            f.write(f"{response['iot_start']}," + f"{response['iot_end']}\n") # TODO: update this
+    print("Exiting...", flush=True)
+
 # Main Function
 def main():
     if send_queue is None or receive_queue is None:
         print("Queues could not be retrieved.", flush=True)
 
+    atexit.register(write_times_in_csv)
     thread_send = threading.Thread(target=send_images)
     thread_receive = threading.Thread(target=waiting_for_alarm)
 
