@@ -6,7 +6,6 @@ import cv2
 import os
 import base64
 import numpy as np
-import matplotlib.pyplot as plt
 import botocore.exceptions
 from datetime import datetime
 from queue import Queue
@@ -23,7 +22,7 @@ This programm requires environment variables to be set:
 
 # Configuration for the EC2
 REGION_NAME = "us-east-1"
-CLOUD_LAMBDA_FUNCTION = "cloud_Lambda"  #TODO: Set the actual Lambda function name
+CLOUD_LAMBDA_FUNCTION = "cloud_Lambda"  
 IMAGES_QUEUE_NAME = "images"
 ALARM_QUEUE_NAME = "alarm"
 
@@ -42,14 +41,20 @@ lambda_client = boto3.client("lambda", region_name=REGION_NAME)
 # initlize queue for the producer-consumer-pattern of sending the images
 image_queue = Queue(maxsize=10)
 
+# initialize the benchmarking variables
+#edge_start1 = 0
+#edge_end1 = 0 is done directly in the message
+#edge_start2 = 0 is done in the function send_to_cloud
+#edge_end2 = 0 is done directly in the message
+
 def consumer():
     """
     Consumer thread: waits for frames from the queue, then sends them to the cloud.
     """
     while True:
-        frame, iot_id = image_queue.get()
+        frame, iot_id, iot_time, edge_start1 = image_queue.get()
         try:
-            send_to_cloud(frame, iot_id)
+            send_to_cloud(frame, iot_id, iot_time, edge_start1)
         finally:
             image_queue.task_done()
 
@@ -77,7 +82,7 @@ colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
 net = cv2.dnn.readNetFromDarknet(MODEL_CFG, MODEL_WEIGHTS)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 
-def process_yolo(frame, iot_id,end_time):
+def process_yolo(frame, iot_id, iot_time, edge_start1):
     """
     Run YOLO filtering on the frame and send valid images to the cloud Lambda function.
     Also start a thread for sending and receiving the message to the cloud.
@@ -111,21 +116,20 @@ def process_yolo(frame, iot_id,end_time):
             indices = indices.flatten() if isinstance(indices, np.ndarray) else indices[0]
             for i in indices:
                 x, y, w, h = boxes[i]
-                end_time.append(time.time())
                 
                 if classIDs[i] == 0:  # Class 0: Person
                     cropped_frame = frame[y:y+h, x:x+w]
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     print(f"EDGE: Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
                     # push image to the queue for the consumer
-                    image_queue.put((cropped_frame, iot_id))
+                    image_queue.put((cropped_frame, iot_id, iot_time, edge_start1))
                     
                     print(f"EDGE: No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
     except Exception as e:
         print(f"EDGE: Error in YOLO processing: {e}", flush=True)
 
 
-def send_to_cloud(frame, iot_id):
+def send_to_cloud(frame, iot_id, iot_time, edge_start1):
     """
     Send the image to the cloud Lambda function for further processing and waits for the response to (not) send alarm.
     """
@@ -133,7 +137,10 @@ def send_to_cloud(frame, iot_id):
         _, encoded_image = cv2.imencode(".jpg", frame)
         payload = {
             "iot_id": iot_id,
-            "image": base64.b64encode(encoded_image).decode("utf-8")    # Base64 -> UTF-8 String
+            "image": base64.b64encode(encoded_image).decode("utf-8"),    # Base64 -> UTF-8 String
+            "iot_start": iot_time,
+            "edge_start1": edge_start1,
+            "edge_end1": time.time()
         }
 
         response = lambda_client.invoke(
@@ -141,11 +148,10 @@ def send_to_cloud(frame, iot_id):
             InvocationType="RequestResponse",
             Payload=json.dumps(payload)
         )
-
-        response_payload = json.loads(response["Payload"].read())   #TODO: Check for response format
+        edge_start2 = time.time()
+        response_payload = json.loads(response["Payload"].read())
         if response_payload.get("status") == "unknown":
-
-            trigger_alarm(iot_id, frame)
+            trigger_alarm(response_payload, frame, edge_start2)
         elif response_payload.get("status") == "error":
             print(f"CLOUD: Error processing image for IoT device {iot_id}.", flush=True)
             print(f"CLOUD: Error message: {response_payload.get('error')}", flush=True)
@@ -158,6 +164,7 @@ def send_to_cloud(frame, iot_id):
     except Exception as e:
         print(f"EDGE: Error sending to cloud: {e}", flush=True)
 
+"""Old function for the evaluation
 def plot_benchmarks(start_time, end_time):
     try:
         os.makedirs("plots", exist_ok=True)
@@ -176,18 +183,22 @@ def plot_benchmarks(start_time, end_time):
         # Save the plot with high resolution
         plt.savefig(os.path.join("plots", "time_diff.jpg"), dpi=300, bbox_inches='tight')#
     except Exception as e:
-        print(f"Error plotting benchmarks: {e}", flush=True)
+        print(f"Error plotting benchmarks: {e}", flush=True)"""
 
 
-def trigger_alarm(iot_id, frame):
+def trigger_alarm(payload, frame, edge_start2):
     """
     Send an alarm to the IoT device via the alarm SQS queue.
     """
     try:
+        iot_id = payload.get("iot_id")
+        payload["edge_start2"] = edge_start2 # TODO: wieso wird des nicht direkt in den payload geschrieben?
+        payload["edge_end2"] = time.time()
         alarm_message = {"iot_id": iot_id, "message": "Unknown person detected"}
-        alarm_queue.send_message(MessageBody=json.dumps(alarm_message))
+        merged_dict = {**payload, **alarm_message}  #overwrite the same key values from payload TODO: für wos is des?
+        alarm_queue.send_message(MessageBody=json.dumps(merged_dict))
         # Save the cropped image
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f") #TODO: konnen wir nicht des von oben nehmen?
         filename = os.path.join(ALARM_DIR, f"person_{timestamp}.jpg")
         cv2.imwrite(filename, frame)
         print(f"Edge: Alarm triggered for IoT device {iot_id}.", flush=True)
@@ -199,26 +210,26 @@ def listen_for_images():
     Listen for image messages from the IoT devices via the SQS queue.
     """
     msg_count = 0
-    start_time = list()
-    end_time = list()
     while True:
         try:
             messages = images_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10)
-            start_time.append(time.time())
+            edge_start1 = time.time()
             for message in messages:
                 msg_count = msg_count + 1
                 body = json.loads(message.body)
                 frame_data = base64.b64decode(body["frame"])    # Decode the base64 string to bytes
                 frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
                 iot_id = body["iot_id"]
+                iot_time = body["iot_start"] #TODO: wieso nicht den body weitergeben?
+                # body["edge_start1"] = time.time() vlt. so?
 
                 print(f"Received image from IoT {iot_id}.", flush=True)
 
                 message.delete()
-                process_yolo(frame, iot_id, end_time)
+                process_yolo(frame, iot_id, iot_time, edge_start1)
                 print(f"EDGE: {msg_count} messages already processed.", flush=True)
-                if msg_count == 100:
-                    plot_benchmarks(start_time=start_time,end_time=end_time)
+                #if msg_count == 100:
+                #    plot_benchmarks(start_time=start_time,end_time=end_time)
         except Exception as e:
             print(f"Error receiving image messages: {e}", flush=True)
             time.sleep(5)  # Retry delay
