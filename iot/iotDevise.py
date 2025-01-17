@@ -74,7 +74,7 @@ def send_frame(frame):
 def waiting_for_alarm():
     # make folder for csv files with timestamps
     if not os.path.exists("times"):
-        os.makedirs("times")
+        os.makedirs("times", exist_ok=True)
     while True:
         try:
             response = receive_queue.receive_messages(
