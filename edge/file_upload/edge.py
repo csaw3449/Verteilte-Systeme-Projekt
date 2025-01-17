@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import botocore.exceptions
 from datetime import datetime
-
+from queue import Queue
 
 """
 This programm receives images from the IoT devices, processes them with YOLO, and sends them to the cloud.
@@ -39,6 +39,19 @@ CONFIDENCE_THRESHOLD = 0.6
 sqs = boto3.resource("sqs", region_name=REGION_NAME)
 lambda_client = boto3.client("lambda", region_name=REGION_NAME)
 
+# initlize queue for the producer-consumer-pattern of sending the images
+image_queue = Queue(maxsize=10)
+
+def consumer():
+    """
+    Consumer thread: waits for frames from the queue, then sends them to the cloud.
+    """
+    while True:
+        frame, iot_id = image_queue.get()
+        try:
+            send_to_cloud(frame, iot_id)
+        finally:
+            image_queue.task_done()
 
 #Function to get the queue
 def get_queue(queue_name):
@@ -104,10 +117,9 @@ def process_yolo(frame, iot_id,end_time):
                     cropped_frame = frame[y:y+h, x:x+w]
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     print(f"EDGE: Person detected by YOLO for IoT device {iot_id}. Sending to cloud.", flush=True)
-                    # Send the cropped image to the cloud
-                    time.sleep(1)
-                    threading.Thread(target=send_to_cloud, args=(cropped_frame, iot_id)).start()
-                else:
+                    # push image to the queue for the consumer
+                    image_queue.put((cropped_frame, iot_id))
+                    
                     print(f"EDGE: No person detected in the image from IoT device {iot_id}. Skipping.", flush=True)
     except Exception as e:
         print(f"EDGE: Error in YOLO processing: {e}", flush=True)
@@ -165,8 +177,6 @@ def plot_benchmarks(start_time, end_time):
         plt.savefig(os.path.join("plots", "time_diff.jpg"), dpi=300, bbox_inches='tight')#
     except Exception as e:
         print(f"Error plotting benchmarks: {e}", flush=True)
-    finally:
-        exit()
 
 
 def trigger_alarm(iot_id, frame):
@@ -213,14 +223,21 @@ def listen_for_images():
             print(f"Error receiving image messages: {e}", flush=True)
             time.sleep(5)  # Retry delay
 
+def start_threads():
+    """
+    Create 1 producer thread and 3 consumer threads.
+    """
+    for _ in range(3):
+        t = threading.Thread(target=consumer, daemon=True)
+        t.start()
+
+    producer_thread = threading.Thread(target=listen_for_images, daemon=True)
+    producer_thread.start()
 
 def main():
     try:
         os.makedirs(ALARM_DIR, exist_ok=True)
-        # Create threads for image and alarm listeners
-        image_thread = threading.Thread(target=listen_for_images)
-        # Start the threads
-        image_thread.start()
+        start_threads()
     except Exception as e:
         print(f"Error in main: {e}", flush=True)
 
