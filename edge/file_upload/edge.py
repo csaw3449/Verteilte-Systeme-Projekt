@@ -228,10 +228,10 @@ def start_threads():
     Create 1 producer thread and 3 consumer threads.
     """
     for _ in range(3):
-        t = threading.Thread(target=consumer, daemon=True)
+        t = threading.Thread(target=consumer)
         t.start()
 
-    producer_thread = threading.Thread(target=listen_for_images, daemon=True)
+    producer_thread = threading.Thread(target=listen_for_images)
     producer_thread.start()
 
 def main():
