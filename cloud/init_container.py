@@ -89,4 +89,4 @@ if __name__ == '__main__':
         exit(1)
     create_bucket(bucket_name)
     add_images_to_bucket(bucket_name, path_to_images)
-    create_collection(bucket_name, 'pfusch-collection2', path_to_images)
+    create_collection(bucket_name, 'pfusch-collection', path_to_images)
