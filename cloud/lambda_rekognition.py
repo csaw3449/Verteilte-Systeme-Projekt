@@ -1,6 +1,7 @@
 import boto3.exceptions
 import boto3
 import base64
+import time
 
 # outside of the lambda function to avoid creating a new client for every invocation (might be changed)
 rekognition = boto3.client('rekognition', region_name='us-east-1')
@@ -8,6 +9,7 @@ rekognition = boto3.client('rekognition', region_name='us-east-1')
 # this lambda function is triggered by the edge layer and the pictures a located in a container
 def lambda_handler(event, context):
     # get the image and iot_id from the event
+    lambda_start = time.time()
     image = event['image']
     iot_id = event['iot_id']
     
@@ -18,7 +20,12 @@ def lambda_handler(event, context):
         return {
             'status': 'error',
             'iot_id': iot_id,
-            'error': 'image could not be decoded'
+            'error': 'image could not be decoded',
+            'iot_start': event['iot_start'],
+            'edge_start1' : event['edge_start1'],
+            'edge_end1' : event['edge_end1'],
+            'lambda_start': lambda_start,
+            'lambda_end': time.time()
         }
 
     # look for similar faces in the collection and check if there is a 90% match
@@ -36,24 +43,44 @@ def lambda_handler(event, context):
         return {
             'status': 'no_face',
             'iot_id': iot_id,
-            'error': 'no face detected'
+            'error': 'no face detected',
+            'iot_start': event['iot_start'],
+            'edge_start1' : event['edge_start1'],
+            'edge_end1' : event['edge_end1'],
+            'lambda_start': lambda_start,
+            'lambda_end': time.time()
         }
     except Exception as e:
         return {
             'status': 'error',
             'iot_id': iot_id,
-            'error': str(e)
+            'error': str(e), 
+            'iot_start': event['iot_start'],
+            'edge_start1' : event['edge_start1'],
+            'edge_end1' : event['edge_end1'],
+            'lambda_start': lambda_start,
+            'lambda_end': time.time()
         }
 
     # if there is a match, return the status known otherwise unknown
     if len(response['FaceMatches']) > 0:
         return {
             'status': 'known',
-            'iot_id': iot_id
+            'iot_id': iot_id,
+            'iot_start': event['iot_start'],
+            'edge_start1' : event['edge_start1'],
+            'edge_end1' : event['edge_end1'],
+            'lambda_start': lambda_start,
+            'lambda_end': time.time()
         }
     else:
         return {
             'status': 'unknown',
-            'iot_id': iot_id
+            'iot_id': iot_id, 
+            'iot_start': event['iot_start'],
+            'edge_start1' : event['edge_start1'],
+            'edge_end1' : event['edge_end1'],
+            'lambda_start': lambda_start,
+            'lambda_end': time.time()
         }
     
