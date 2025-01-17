@@ -1,4 +1,3 @@
-import random
 import os
 import cv2
 import time
@@ -127,10 +126,13 @@ def write_times_in_csv():
     filename = f"times/times_{id}.csv"
     with open(filename, "w") as f:
         print(f"Writing times in {filename}", flush=True)
-        f.write("iot_start,iot_end\n") # TODO: update this
+        f.write("iot_start, iot_end, edge_start1, edge_end1, cloud_start, cloud_end, edge_start2, edge_end2\n") # Should be correct now!
         while not responses.empty():
             response = responses.get()
-            f.write(f"{response['iot_start']}," + f"{response['iot_end']}\n") # TODO: update this
+            f.write(f"{response['iot_start']}," + f"{response['iot_end']}," 
+                    + f"{response['edge_start1']}," + f"{response['edge_end1']},"
+                    + f"{response['cloud_start']}," + f"{response['cloud_end']},"
+                    + f"{response['edge_start2']}," + f"{response['edge_end2']}\n") # Should be correct now!
     print("Exiting...", flush=True)
 
 # Main Function
