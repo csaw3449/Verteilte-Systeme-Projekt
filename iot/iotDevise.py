@@ -139,7 +139,6 @@ def write_times_in_csv():
 def signal_handler(sig, frame):
     print("Signal received, cleaning up...")
     write_times_in_csv()
-    sys.exit(0)  # Exit gracefully
 
 # Main Function
 def main():
