@@ -7,8 +7,8 @@ services:
     environment:
       - SET_NUMBER=1
       - IOT_ID=1
-    #volumes:
-    #  - ./data/set1:/app/data/wisenet_dataset/video_sets/set_1
+    volumes:
+      - ./times:/app/times
     ports:
       - "5001:5000"
 
@@ -18,8 +18,8 @@ services:
     environment:
       - SET_NUMBER=2
       - IOT_ID=2
-    #volumes:
-    #  - ./data/set2:/app/data/wisenet_dataset/video_sets/set_2
+    volumes:
+      - ./times:/app/times
     ports:
       - "5002:5000"
 
@@ -29,8 +29,8 @@ services:
     environment:
       - SET_NUMBER=3
       - IOT_ID=3
-    #volumes:
-    #  - ./data/set3:/app/data/wisenet_dataset/video_sets/set_3
+    volumes:
+      - ./times:/app/times
     ports:
       - "5003:5000"
 
@@ -40,8 +40,8 @@ services:
     environment:
       - SET_NUMBER=4
       - IOT_ID=4
-    #volumes:
-    #  - ./data/set4:/app/data/wisenet_dataset/video_sets/set_4
+    volumes:
+      - ./times:/app/times
     ports:
       - "5004:5000"
 
@@ -51,7 +51,7 @@ services:
     environment:
       - SET_NUMBER=5
       - IOT_ID=5
-    #volumes:
-    #  - ./data/set5:/app/data/wisenet_dataset/video_sets/set_5
+    volumes:
+      - ./times:/app/times
     ports:
       - "5005:5000"
