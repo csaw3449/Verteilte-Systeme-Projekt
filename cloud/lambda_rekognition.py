@@ -45,7 +45,7 @@ def lambda_handler(event, context):
             'iot_id': iot_id,
             'error': 'no face detected',
             'iot_start': event['iot_start'],
-            'edge_start1' : event['edge_st66666art1'],
+            'edge_start1' : event['edge_start1'],
             'edge_end1' : event['edge_end1'],
             'cloud_start': cloud_start,
             'cloud_end': time.time()
