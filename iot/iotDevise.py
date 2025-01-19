@@ -7,7 +7,8 @@ import base64
 import json
 import botocore.exceptions
 import queue 
-import atexit
+import sys
+import signal
 
 """
 This program sends images from a video dataset to the edge layer in a specific time interval.
@@ -135,12 +136,16 @@ def write_times_in_csv():
                     + f"{response['edge_start2']}," + f"{response['edge_end2']}\n") # Should be correct now!
     print("Exiting...", flush=True)
 
+def signal_handler(sig, frame):
+    print("Signal received, cleaning up...")
+    write_times_in_csv()
+    sys.exit(0)  # Exit gracefully
+
 # Main Function
 def main():
-    if send_queue is None or receive_queue is None:
-        print("Queues could not be retrieved.", flush=True)
-
-    atexit.register(write_times_in_csv)
+    # Register signal handlers for SIGTERM and SIGINT
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
     thread_send = threading.Thread(target=send_images)
     thread_receive = threading.Thread(target=waiting_for_alarm)
 
