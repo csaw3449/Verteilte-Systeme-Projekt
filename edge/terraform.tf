@@ -17,7 +17,7 @@ provider "aws" {
 
 
 resource "aws_security_group" "security" {
-  name = "allow-ssh1"
+  name = "allow-ssh3"
 
 
   ingress {
@@ -38,7 +38,7 @@ resource "aws_security_group" "security" {
 }
 
 resource "aws_instance" "app_server" {
-  ami                  = "ami-01816d07b1128cd2d"
+  ami                  = "ami-0278a29a3eec44bbb"
   instance_type        = "t2.micro"
   iam_instance_profile = "LabInstanceProfile"
 
