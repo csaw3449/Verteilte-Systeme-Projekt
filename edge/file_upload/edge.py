@@ -75,10 +75,6 @@ def get_queue(queue_name):
 images_queue = get_queue(IMAGES_QUEUE_NAME)
 alarm_queue = get_queue(ALARM_QUEUE_NAME)
 
-# Initialize YOLO
-classes = open(COCO_NAMES).read().strip().split('\n')
-colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
-
 net = cv2.dnn.readNetFromDarknet(MODEL_CFG, MODEL_WEIGHTS)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 

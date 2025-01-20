@@ -19,7 +19,7 @@ This program requires environment variables to be set:
 """
 # Configuration
 frame_rate = 30 # Framerate of the videos
-seconds_between_images = 1 # 1 seconds between each image 
+seconds_between_images = 0.25 # 0.25 seconds between each image 
 delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 # Environment Variables

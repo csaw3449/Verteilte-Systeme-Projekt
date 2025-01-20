@@ -1,0 +1,1 @@
+docker stop iot_device_1 iot_device_2 iot_device_3 iot_device_4 iot_device_5 

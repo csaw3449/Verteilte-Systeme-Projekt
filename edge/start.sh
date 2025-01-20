@@ -1,4 +1,3 @@
-#sudo zip -r ./file_upload/weights.zip ./yolo4weights
 terraform apply -auto-approve
 host=$(terraform show | grep public_dns | sed -n 's/.*"\([^"]*\)".*/\1/p')
 

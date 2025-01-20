@@ -1,0 +1,2 @@
+EDGE1: 2941 messages
+EDGE2: 2901 messages
