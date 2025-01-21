@@ -19,7 +19,7 @@ This program requires environment variables to be set:
 """
 # Configuration
 frame_rate = 30 # Framerate of the videos
-seconds_between_images = 0.25 # 0.25 seconds between each image 
+seconds_between_images = 2 # 0.25 seconds between each image 
 delay_images = frame_rate * seconds_between_images # 3 seconds delay between each image
 
 # Environment Variables
@@ -103,8 +103,7 @@ def send_images():
     while True:
         if msg_sent >1000:
             print("All msg sent...", flush=True)
-            write_times_in_csv()
-            exit(0)
+            return
         try:
             videos = os.listdir(path_to_video)
             for video in videos:
@@ -149,8 +148,8 @@ def signal_handler(sig, frame):
 # Main Function
 def main():
     # Register signal handlers for SIGTERM and SIGINT
-    # signal.signal(signal.SIGTERM, signal_handler)
-    # signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
     thread_send = threading.Thread(target=send_images)
     thread_receive = threading.Thread(target=waiting_for_alarm)
 
