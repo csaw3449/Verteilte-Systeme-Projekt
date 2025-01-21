@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import boto3
 import json
 import threading
@@ -19,12 +19,21 @@ message_id_lock = threading.Lock()  # Thread-safe increment lock
 @app.route('/')
 def index():
     """
-    Fetch alarms from the SQS queue and display them on the index page.
+    Render the main HTML page.
+    """
+    return render_template('index.html')
+
+
+@app.route('/alarms', methods=['GET'])
+def get_alarms():
+    """
+    Fetch alarms from the SQS queue and return them as JSON.
     """
     global message_id  # Access the global variable
+    global alarms
 
     # Fetch messages from the SQS queue
-    for message in html_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=10):
+    for message in html_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=1):
         try:
             body = json.loads(message.body)  # Parse the message body
             iot_id = body.get('iot_id', 1)  # Extract the `iot_id`
@@ -47,7 +56,7 @@ def index():
         except Exception as e:
             print(f"Error processing message: {e}", flush=True)
 
-    return render_template('index.html', alarms=alarms)
+    return jsonify({"alarms": alarms})
 
 
 @app.route('/disarm/<int:message_id>', methods=['POST'])
@@ -60,7 +69,7 @@ def disarm_alarm(message_id):
     alarms = [alarm for alarm in alarms if alarm["message_id"] != message_id]
     print(f"Alarm {message_id} disarmed!")
 
-    return redirect(url_for('index'))
+    return '', 204  # Return no content
 
 
 if __name__ == "__main__":
