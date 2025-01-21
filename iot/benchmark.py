@@ -53,6 +53,7 @@ def bar_chart_of_metrics(datasets : dict):
     df_layers.plot(kind="bar")
     plt.title("Average Durations of Layers")
     plt.ylabel("Duration in seconds")
+    plt.tight_layout()
     plt.savefig("./graphs/averages_layers.png")
     plt.clf()
 
@@ -61,6 +62,7 @@ def bar_chart_of_metrics(datasets : dict):
     df_latency.plot(kind="bar")
     plt.title("Average Latency of Layers")
     plt.ylabel("Duration in seconds")
+    plt.tight_layout()
     plt.savefig("./graphs/averages_latency_all.png")
     plt.clf()
 
@@ -69,6 +71,7 @@ def bar_chart_of_metrics(datasets : dict):
     df_full_time.plot(kind="bar")
     plt.title("Average Full Time")
     plt.ylabel("Duration in seconds")
+    plt.tight_layout()
     plt.savefig("./graphs/averages_full_time.png")
     plt.clf()
 
