@@ -51,6 +51,7 @@ def get_queue(queue_name, retries=0):
 send_queue = get_queue("images")
 receive_queue = get_queue("alarm")
 
+
 # Function to send frames
 def send_frame(frame):
     try:
@@ -75,6 +76,7 @@ def waiting_for_alarm():
     # make folder for csv files with timestamps
     if not os.path.exists("times"):
         os.makedirs("times", exist_ok=True)
+    html_queue = get_queue("html_queue")
     while True:
         try:
             response = receive_queue.receive_messages(
@@ -88,6 +90,8 @@ def waiting_for_alarm():
                     body["iot_end"] = time.time()
                     # for saving the time in a csv file
                     responses.put(body)
+                    # send the alarm to the html
+                    html_queue.send_message(MessageBody=json.dumps(body))
                     message.delete()
                 else:
                     print(f"Ignoring alarm for {body['iot_id']}", flush=True)
