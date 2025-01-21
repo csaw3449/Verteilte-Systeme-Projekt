@@ -188,13 +188,13 @@ def trigger_alarm(payload, frame, edge_start2):
     """
     try:
         iot_id = payload.get("iot_id")
-        payload["edge_start2"] = edge_start2 # TODO: wieso wird des nicht direkt in den payload geschrieben?
+        payload["edge_start2"] = edge_start2 
         payload["edge_end2"] = time.time()
         alarm_message = {"iot_id": iot_id, "message": "Unknown person detected"}
-        merged_dict = {**payload, **alarm_message}  #overwrite the same key values from payload TODO: für wos is des?
+        merged_dict = {**payload, **alarm_message}  
         alarm_queue.send_message(MessageBody=json.dumps(merged_dict))
         # Save the cropped image
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f") #TODO: konnen wir nicht des von oben nehmen?
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f") 
         filename = os.path.join(ALARM_DIR, f"person_{timestamp}.jpg")
         cv2.imwrite(filename, frame)
         print(f"Edge: Alarm triggered for IoT device {iot_id}.", flush=True)
@@ -216,8 +216,7 @@ def listen_for_images():
                 frame_data = base64.b64decode(body["frame"])    # Decode the base64 string to bytes
                 frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
                 iot_id = body["iot_id"]
-                iot_time = body["iot_start"] #TODO: wieso nicht den body weitergeben?
-                # body["edge_start1"] = time.time() vlt. so?
+                iot_time = body["iot_start"] 
 
                 print(f"Received image from IoT {iot_id}.", flush=True)
 
