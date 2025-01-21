@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Management</title>
+    <!-- Auto-refresh every 2 seconds -->
+    <meta http-equiv="refresh" content="1">
+</head>
+<body>
+    <h1>IoT Alarm Dashboard</h1>
+    
+    {% if alarms|length == 0 %}
+        <p>No alarms active</p>
+    {% else %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Message_ID</th>
+                    <th>Timestamp</th>
+                    <th>Message</th>
+                    <th>IOT_ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alarm in alarms %}
+                <tr>
+                    <td>{{ alarm.message_id }}</td>
+                    <td>{{ alarm.timestamp }}</td>
+                    <td>{{ alarm.message }}</td>
+                    <td>{{ alarm.iot_id }}</td>
+                    <td>
+                        <form method="post" action="{{ url_for('disarm_alarm', message_id=alarm.message_id) }}">
+                            <button type="submit">Disarm</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>
