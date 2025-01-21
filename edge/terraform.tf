@@ -40,7 +40,7 @@ resource "aws_security_group" "security" {
 resource "aws_instance" "app_server" {
   count                = 2
   ami                  = "ami-01816d07b1128cd2d"
-  instance_type        = "t2.micro"
+  instance_type        = "t2.micro"01816d07b1128cd2d
   iam_instance_profile = "LabInstanceProfile"
 
   key_name = "EC2-key"
