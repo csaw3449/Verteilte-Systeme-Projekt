@@ -105,9 +105,6 @@ def send_images():
     path_to_video = f"data/wisenet_dataset/video_sets/set_{set_number}/"
     msg_sent = 0
     while True:
-        if msg_sent >1000:
-            print("All msg sent...", flush=True)
-            return
         try:
             videos = os.listdir(path_to_video)
             for video in videos:
@@ -123,6 +120,9 @@ def send_images():
                         send_frame(frame)
                         msg_sent += 1
                         counter = 0
+                        if msg_sent >1000:
+                            print("All msg sent...", flush=True)
+                            return
                         time.sleep(seconds_between_images)
                 cap.release()
                 cv2.destroyAllWindows()
