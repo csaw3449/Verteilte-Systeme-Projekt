@@ -108,9 +108,6 @@ def send_images():
         try:
             videos = os.listdir(path_to_video)
             for video in videos:
-                if msg_sent >1000:
-                    print("All msg sent...", flush=True)
-                    return
                 cap = cv2.VideoCapture(path_to_video + video)
                 counter = 0
                 while cap.isOpened():
@@ -123,6 +120,9 @@ def send_images():
                         send_frame(frame)
                         msg_sent += 1
                         counter = 0
+                        if msg_sent >1000:
+                            print("All msg sent...", flush=True)
+                            return
                         time.sleep(seconds_between_images)
                 cap.release()
                 cv2.destroyAllWindows()
