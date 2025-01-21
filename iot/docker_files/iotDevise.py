@@ -118,6 +118,7 @@ def send_images():
                     if counter > delay_images:
                         print("Sending frame...", flush=True)
                         send_frame(frame)
+                        msg_sent += 1
                         counter = 0
                         time.sleep(seconds_between_images)
                 cap.release()
@@ -126,7 +127,6 @@ def send_images():
             print(f"Error sending images: {e}", flush=True)
             print("Retrying image sending in 5 seconds...", flush=True)
             time.sleep(5)
-        msg_sent += 1
 
 def write_times_in_csv():
     # write times in csv file
