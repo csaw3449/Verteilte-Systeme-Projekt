@@ -27,29 +27,48 @@ def bar_chart_of_metrics(datasets : dict):
 
     '''compute averages of full process, edge1 and edge2 and cloud'''
     averages_layers = {}
+    averages_latency_all = {}
 
     for dataset_name, dataset in datasets.items():
         averages = {
-            "edge1": (dataset["edge_end1"].mean() - dataset["edge_start1"]).mean(),
-            "cloud": (dataset["cloud_end"].mean() - dataset["cloud_start"]).mean(),
-            "edge2": (dataset["edge_end2"].mean() - dataset["edge_start2"]).mean()
+            "edge1": (dataset["edge_end1"] - dataset["edge_start1"]).mean(),
+            "cloud": (dataset["cloud_end"] - dataset["cloud_start"]).mean(),
+            "edge2": (dataset["edge_end2"] - dataset["edge_start2"]).mean()
         }
         averages_layers[dataset_name] = averages
+
+        averages_latency = {
+            "iot-egde": (dataset["edge_start1"] - dataset["iot_start"]).mean(),
+            "edge-cloud": (dataset["cloud_start"] - dataset["edge_end1"]).mean(),
+            "cloud-edge": (dataset["edge_start2"] - dataset["cloud_end"]).mean(),
+            "edge-iot": (dataset["iot_end"] - dataset["edge_end2"]).mean()
+        }
+        averages_latency_all[dataset_name] = averages_latency
+        '''
         plt.bar(averages.keys(), averages.values())
         plt.title(f"Average Durations of {dataset_name}")
         plt.ylabel("Duration in seconds")
         plt.savefig(f"./graphs/{dataset_name}.png")
         plt.clf()
+        '''
 
-    '''create combined bar chart'''
-    df = pd.DataFrame(averages_layers)
-    df.plot(kind='bar')
-    plt.title("Average Durations of all datasets")
+    '''create combined bar chart of layers'''
+    df_layers = pd.DataFrame(averages_layers)
+    df_layers.plot(kind="bar")
+    plt.title("Average Durations of Layers")
     plt.ylabel("Duration in seconds")
-    plt.savefig(f"./graphs/combined.png")
-    
+    plt.savefig("./graphs/averages_layers.png")
+    plt.clf()
 
-    print("Created bar_charts for each dataset in the graphs folder")
+    '''create combined bar chart of latency'''
+    df_latency = pd.DataFrame(averages_latency_all)
+    df_latency.plot(kind="bar")
+    plt.title("Average Latency of Layers")
+    plt.ylabel("Duration in seconds")
+    plt.savefig("./graphs/averages_latency_all.png")
+    plt.clf()
+
+    print("Created bar_charts for datasets")
 
 
 def main():
