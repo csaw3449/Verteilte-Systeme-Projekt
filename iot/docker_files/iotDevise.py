@@ -101,12 +101,12 @@ def send_images():
     path_to_video = f"data/wisenet_dataset/video_sets/set_{set_number}/"
     msg_sent = 0
     while True:
-        if msg_sent >1000:
-            print("All msg sent...", flush=True)
-            return
         try:
             videos = os.listdir(path_to_video)
             for video in videos:
+                if msg_sent >1000:
+                    print("All msg sent...", flush=True)
+                    return
                 cap = cv2.VideoCapture(path_to_video + video)
                 counter = 0
                 while cap.isOpened():
