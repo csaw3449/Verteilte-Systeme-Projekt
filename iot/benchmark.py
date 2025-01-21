@@ -81,15 +81,47 @@ def bar_chart_of_metrics(datasets : dict):
     print("Created bar_charts for datasets")
 
 
+def combined_latency_histograms(datasets, colors):
+    """Create one histogram per latency type with combined data."""
+    latency_calculations = {
+        "IoT to Edge 1": ("iot_start", "edge_start1"),
+        "Edge 1 Processing": ("edge_start1", "edge_end1"),
+        "Edge 1 to Cloud": ("edge_end1", "cloud_start"),
+        "Cloud Processing": ("cloud_start", "cloud_end"),
+        "Cloud to Edge 2": ("cloud_end", "edge_start2"),
+        "Edge 2 Processing": ("edge_start2", "edge_end2"),
+        "Edge 2 to IoT": ("edge_end2", "iot_end"),
+    }
+
+    for latency_label, (start_col, end_col) in latency_calculations.items():
+        plt.figure(figsize=(10, 6))
+        for (dataset_name, dataset), color in zip(datasets.items(), colors):
+            try:
+                if start_col in dataset.columns and end_col in dataset.columns:
+                    latencies = dataset[end_col] - dataset[start_col]
+                    plt.hist(latencies, bins=20, alpha=0.5, color=color, label=dataset_name, edgecolor='black')
+            except KeyError as e:
+                print(f"Missing data for {latency_label} in {dataset_name}: {e}")
+        plt.title(f"Latency Histogram: {latency_label}")
+        plt.xlabel("Latency (seconds)")
+        plt.ylabel("Frequency")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f"./graphs/combined_histogram_{latency_label.replace(' ', '_')}.png")
+        plt.clf()
+
 def main():
-    results = {}
+    datasets = {}
     base_path = "./times"
+    colors = ["blue", "green", "red", "purple", "orange"]  # Different colors for datasets
     for folder in os.listdir(base_path):
         folder_path = os.path.join(base_path, folder)
         if os.path.isdir(folder_path):
-            results[folder] = process_folder(folder_path)
+            datasets[folder] = process_folder(folder_path)
             print(f"Processed folder {folder}")
-    bar_chart_of_metrics(results)
+    combined_latency_histograms(datasets, colors)
+    print("Combined histograms created.")
+
 
 
 if __name__ == "__main__":
