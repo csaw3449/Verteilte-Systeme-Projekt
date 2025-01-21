@@ -38,6 +38,7 @@ resource "aws_security_group" "security" {
 }
 
 resource "aws_instance" "app_server" {
+  count                = 2
   ami                  = "ami-01816d07b1128cd2d"
   instance_type        = "t2.micro"
   iam_instance_profile = "LabInstanceProfile"
@@ -59,7 +60,7 @@ resource "aws_instance" "app_server" {
   }
 
 
-  tags = {
-    Name = "Edge-Devices"
+    tags = {
+    Name = "Edge ${count.index}"
   }
 }
