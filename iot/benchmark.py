@@ -28,12 +28,13 @@ def bar_chart_of_metrics(datasets : dict):
     '''compute averages of full process, edge1 and edge2 and cloud'''
     averages_layers = {}
     averages_latency_all = {}
+    averages_full_time = {}
 
     for dataset_name, dataset in datasets.items():
         averages = {
-            "edge1": (dataset["edge_end1"] - dataset["edge_start1"]).mean(),
+            "edge before cloud": (dataset["edge_end1"] - dataset["edge_start1"]).mean(),
             "cloud": (dataset["cloud_end"] - dataset["cloud_start"]).mean(),
-            "edge2": (dataset["edge_end2"] - dataset["edge_start2"]).mean()
+            "edge after cloud": (dataset["edge_end2"] - dataset["edge_start2"]).mean()
         }
         averages_layers[dataset_name] = averages
 
@@ -44,15 +45,10 @@ def bar_chart_of_metrics(datasets : dict):
             "edge-iot": (dataset["iot_end"] - dataset["edge_end2"]).mean()
         }
         averages_latency_all[dataset_name] = averages_latency
-        '''
-        plt.bar(averages.keys(), averages.values())
-        plt.title(f"Average Durations of {dataset_name}")
-        plt.ylabel("Duration in seconds")
-        plt.savefig(f"./graphs/{dataset_name}.png")
-        plt.clf()
-        '''
 
-    '''create combined bar chart of layers'''
+        averages_full_time[dataset_name] = (dataset["iot_end"] - dataset["iot_start"]).mean()
+
+    '''create bar chart of layers'''
     df_layers = pd.DataFrame(averages_layers)
     df_layers.plot(kind="bar")
     plt.title("Average Durations of Layers")
@@ -60,12 +56,20 @@ def bar_chart_of_metrics(datasets : dict):
     plt.savefig("./graphs/averages_layers.png")
     plt.clf()
 
-    '''create combined bar chart of latency'''
+    '''create bar chart of latency'''
     df_latency = pd.DataFrame(averages_latency_all)
     df_latency.plot(kind="bar")
     plt.title("Average Latency of Layers")
     plt.ylabel("Duration in seconds")
     plt.savefig("./graphs/averages_latency_all.png")
+    plt.clf()
+
+    '''create bar chart of full time'''
+    df_full_time = pd.DataFrame(averages_full_time, index=["full time"])
+    df_full_time.plot(kind="bar")
+    plt.title("Average Full Time")
+    plt.ylabel("Duration in seconds")
+    plt.savefig("./graphs/averages_full_time.png")
     plt.clf()
 
     print("Created bar_charts for datasets")
