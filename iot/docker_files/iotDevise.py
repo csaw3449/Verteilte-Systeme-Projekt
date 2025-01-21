@@ -99,7 +99,12 @@ def waiting_for_alarm():
 # Function to send images
 def send_images():
     path_to_video = f"data/wisenet_dataset/video_sets/set_{set_number}/"
+    msg_sent = 0
     while True:
+        if msg_sent >1000:
+            print("All msg sent...", flush=True)
+            write_times_in_csv()
+            exit(0)
         try:
             videos = os.listdir(path_to_video)
             for video in videos:
@@ -121,6 +126,7 @@ def send_images():
             print(f"Error sending images: {e}", flush=True)
             print("Retrying image sending in 5 seconds...", flush=True)
             time.sleep(5)
+        msg_sent += 1
 
 def write_times_in_csv():
     # write times in csv file
@@ -143,8 +149,8 @@ def signal_handler(sig, frame):
 # Main Function
 def main():
     # Register signal handlers for SIGTERM and SIGINT
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+    # signal.signal(signal.SIGTERM, signal_handler)
+    # signal.signal(signal.SIGINT, signal_handler)
     thread_send = threading.Thread(target=send_images)
     thread_receive = threading.Thread(target=waiting_for_alarm)
 
