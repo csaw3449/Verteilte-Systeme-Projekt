@@ -46,10 +46,13 @@ def get_queue(queue_name, retries=0):
             retries += 1
 
     print(f"Failed to fetch queue {queue_name} after {MAX_RETRIES} retries. Exiting.", flush=True)
-    exit(1)  # Return None after reaching max retries
+    return  # Return None after reaching max retries
 
 send_queue = get_queue("images")
 receive_queue = get_queue("alarm")
+receive_queue.set_attributes(Attributes={
+            'VisibilityTimeout': '0'
+        })
 
 
 # Function to send frames
