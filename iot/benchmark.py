@@ -48,6 +48,10 @@ def bar_chart_of_metrics(datasets : dict):
 
         averages_full_time[dataset_name] = (dataset["iot_end"] - dataset["iot_start"]).mean()
 
+    #   Remove ultra_fast_problematic_0_1_s from latency and full time
+    averages_latency_all.pop("ultra_fast_problematic_0_1s")
+    averages_full_time.pop("ultra_fast_problematic_0_1s")
+
     '''create bar chart of layers'''
     df_layers = pd.DataFrame(averages_layers)
     df_layers.plot(kind="bar")
