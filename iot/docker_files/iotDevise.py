@@ -53,6 +53,7 @@ receive_queue = get_queue("alarm")
 receive_queue.set_attributes(Attributes={
             'VisibilityTimeout': '0'
         })
+html_queue = get_queue("html_queue")
 
 
 # Function to send frames
@@ -79,15 +80,16 @@ def waiting_for_alarm():
     # make folder for csv files with timestamps
     if not os.path.exists("times"):
         os.makedirs("times", exist_ok=True)
-    html_queue = get_queue("html_queue")
     while True:
         try:
             response = receive_queue.receive_messages(
                 MaxNumberOfMessages=1, WaitTimeSeconds=10
             )
             for message in response:
-                if message.message_attributes.get("iot_id") == id:
+                body = json.loads(message.body)
+                if body.get("iot_id") == id:
                     body = json.loads(message.body)
+                    message.delete()
                     print(f"Alarm received: {message.body}", flush=True)
                     # add iot_end to the body
                     body["iot_end"] = time.time()
@@ -95,9 +97,8 @@ def waiting_for_alarm():
                     responses.put(body)
                     # send the alarm to the html
                     html_queue.send_message(MessageBody=json.dumps(body))
-                    message.delete()
                 else:
-                    print(f"Ignoring message for IoT {message.message_attributes.get("iot_id")}", flush=True)
+                    print(f"Ignoring alarm for {body['iot_id']}", flush=True)
         except botocore.exceptions.ClientError as e:
             print(f"Error receiving alarm: {e}", flush=True)
             print("Retrying alarm listener in 5 seconds...", flush=True)
