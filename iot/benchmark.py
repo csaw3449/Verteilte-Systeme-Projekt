@@ -119,6 +119,7 @@ def main():
         if os.path.isdir(folder_path):
             datasets[folder] = process_folder(folder_path)
             print(f"Processed folder {folder}")
+    bar_chart_of_metrics(datasets)
     combined_latency_histograms(datasets, colors)
     print("Combined histograms created.")
 
