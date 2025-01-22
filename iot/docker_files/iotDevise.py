@@ -86,8 +86,8 @@ def waiting_for_alarm():
                 MaxNumberOfMessages=1, WaitTimeSeconds=10
             )
             for message in response:
-                body = json.loads(message.body)
-                if body.get("iot_id") == id:
+                if message.message_attributes.get("iot_id") == id:
+                    body = json.loads(message.body)
                     print(f"Alarm received: {message.body}", flush=True)
                     # add iot_end to the body
                     body["iot_end"] = time.time()
@@ -97,7 +97,7 @@ def waiting_for_alarm():
                     html_queue.send_message(MessageBody=json.dumps(body))
                     message.delete()
                 else:
-                    print(f"Ignoring alarm for {body['iot_id']}", flush=True)
+                    print(f"Ignoring message for IoT {message.message_attributes.get("iot_id")}", flush=True)
         except botocore.exceptions.ClientError as e:
             print(f"Error receiving alarm: {e}", flush=True)
             print("Retrying alarm listener in 5 seconds...", flush=True)
